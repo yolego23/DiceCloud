@@ -47,6 +47,12 @@
             </v-alert>
           </v-card-text>
         </v-card>
+        <v-card class="mt-4">
+          <v-card-title>Icon Administration</v-card-title>
+          <v-card-text>
+            <icon-admin />
+          </v-card-text>
+        </v-card>
       </v-col>
     </v-row>
   </v-container>
@@ -56,8 +62,12 @@
 import getVersion from '/imports/migrations/methods/getVersion.js';
 import migrateTo from '/imports/migrations/methods/migrateTo.js';
 import SCHEMA_VERSION from '/imports/constants/SCHEMA_VERSION.js';
+import IconAdmin from '/imports/client/ui/icons/IconAdmin.vue';
 
 export default {
+  components: {
+    IconAdmin,
+  },
   data(){return {
     loadingVersion: false,
     versions: {},
