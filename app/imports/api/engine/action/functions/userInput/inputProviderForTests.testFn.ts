@@ -41,7 +41,10 @@ const inputProviderForTests: InputProvider = {
   },
   async check(suggestedParams) {
     return suggestedParams;
-  }
+  },
+  async castSpell(suggestedParams) {
+    return suggestedParams;
+  },
 }
 
 export default inputProviderForTests;

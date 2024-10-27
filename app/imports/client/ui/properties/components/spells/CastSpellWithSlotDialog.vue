@@ -340,20 +340,19 @@ export default {
         // Cantrips and no-slot spells
         return slotId && slotId === 'no-slot'
       } else {
-        // Leveled spells
+        // Levelled spells
         return slotId !== 'no-slot' && slot && spell && (
             spell.level <= slot.spellSlotLevel.value
           );
       }
     },
-    cast({ advantage }) {
+    cast() {
       let selectedSlotId = this.selectedSlotId;
       const ritual = selectedSlotId === 'ritual';
       if (selectedSlotId === 'no-slot' || selectedSlotId === 'ritual') selectedSlotId = undefined;
       this.$store.dispatch('popDialogStack', {
         spellId: this.selectedSpellId,
         slotId: selectedSlotId,
-        advantage,
         ritual,
       });
     }

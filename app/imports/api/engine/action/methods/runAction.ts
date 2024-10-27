@@ -7,10 +7,31 @@ import applyAction from '/imports/api/engine/action/functions/applyAction';
 import writeActionResults from '../functions/writeActionResults';
 import getReplayChoicesInputProvider from '/imports/api/engine/action/functions/userInput/getReplayChoicesInputProvider';
 import Task from '/imports/api/engine/action/tasks/Task';
+import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 
 export const runAction = new ValidatedMethod({
   name: 'actions.runAction',
-  validate: null, //TODO validate this
+  validate: new SimpleSchema({
+    actionId: String,
+    decisions: {
+      type: Array,
+      optional: true,
+    },
+    'decisions.$': {
+      type: Object,
+      blackbox: true,
+    },
+    task: {
+      type: Object,
+      optional: true,
+      blackbox: true,
+    },
+  }).validator(),
+  mixins: [RateLimiterMixin],
+  rateLimit: {
+    numRequests: 10,
+    timeInterval: 5000,
+  },
   run: async function ({ actionId, decisions = [], task }: { actionId: string, decisions?: any[], task?: Task }) {
     // Get the action
     const action = await EngineActions.findOneAsync(actionId);
