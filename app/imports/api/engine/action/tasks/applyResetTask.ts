@@ -75,13 +75,12 @@ export async function resetProperties(task: ResetTask, action: EngineAction, res
 
   for (const prop of attributes) {
     await applyTask(action, {
-      prop: task.prop || prop,
       targetIds: [action.creatureId],
       subtaskFn: 'damageProp',
       params: {
         title: getPropertyTitle(prop),
         operation: 'increment',
-        value: -prop.damage ?? 0,
+        value: -prop.damage || 0,
         targetProp: prop,
       },
     }, userInput);
@@ -152,7 +151,6 @@ async function resetHitDice(task: ResetTask, action: EngineAction, result: TaskR
 
     // Apply the damage prop task
     await applyTask(action, {
-      prop: task.prop || hd,
       targetIds: [creatureId],
       subtaskFn: 'damageProp',
       params: {

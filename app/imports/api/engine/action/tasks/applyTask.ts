@@ -8,6 +8,7 @@ import applyProperties from '/imports/api/engine/action/applyProperties';
 import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
 import applyCheckTask from '/imports/api/engine/action/tasks/applyCheckTask';
 import applyResetTask from '/imports/api/engine/action/tasks/applyResetTask';
+import applyCastSpellTask from '/imports/api/engine/action/tasks/applyCastSpellTask';
 
 // DamagePropTask promises a number of actual damage done
 export default async function applyTask(
@@ -37,7 +38,7 @@ export default async function applyTask(
   if (action.taskCount > 100) throw 'Only 100 properties can be applied at once';
 
   if (task.subtaskFn) {
-    const result = new TaskResult(task.prop._id, task.targetIds);
+    const result = new TaskResult(task.targetIds);
     action.results.push(result);
     switch (task.subtaskFn) {
       case 'damageProp':
@@ -48,6 +49,8 @@ export default async function applyTask(
         return applyCheckTask(task, action, result, inputProvider);
       case 'reset':
         return applyResetTask(task, action, result, inputProvider);
+      case 'castSpell':
+        return applyCastSpellTask(task, action, result, inputProvider);
       default:
         throw 'No case defined for the given subtaskFn';
     }
@@ -71,7 +74,7 @@ export default async function applyTask(
     }
 
     // Create a result an push it to the action results, pass it to the apply function to modify
-    const result = new TaskResult(task.prop._id, task.targetIds);
+    const result = new TaskResult(task.targetIds);
     result.scope[`#${prop.type}`] = { _propId: prop._id };
     action.results.push(result);
 

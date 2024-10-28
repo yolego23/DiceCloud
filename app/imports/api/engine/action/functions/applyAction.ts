@@ -1,9 +1,7 @@
 import { EngineAction } from '/imports/api/engine/action/EngineActions';
-import { getSingleProperty } from '/imports/api/engine/loadCreatures';
 import applyTask from '/imports/api/engine/action/tasks/applyTask'
 import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
 import saveInputChoices from './userInput/saveInputChoices';
-import Task from '/imports/api/engine/action/tasks/Task';
 
 // TODO create a function to get the effective value of a property,
 // simulating all the result updates in the action so far
@@ -16,11 +14,9 @@ import Task from '/imports/api/engine/action/tasks/Task';
  * @param action The action to apply
  * @param userInput The input provider
  * @param { Object } options
- * @param { Task } options.task If provided, the action will start with this task instead of
- * applying the root property of the action
  */
 export default async function applyAction(action: EngineAction, userInput: InputProvider, options?: {
-  simulate?: boolean, stepThrough?: boolean, task?: Task,
+  simulate?: boolean, stepThrough?: boolean,
 }) {
   const { simulate, stepThrough } = options || {};
   if (!simulate && stepThrough) throw 'Cannot step through unless simulating';
@@ -39,29 +35,19 @@ export default async function applyAction(action: EngineAction, userInput: Input
   action._stepThrough = stepThrough;
   action._isSimulation = simulate;
   action.taskCount = 0;
-  let task = options?.task;
-  if (!task) {
-    const prop = await getSingleProperty(action.creatureId, action.rootPropId);
-    if (!prop) throw new Meteor.Error('Not found', 'Root action property could not be found');
-
-    // If the target ids weren't already set, get them from the user
-    if (
-      !action.targetIds
-      && action.tabletopId
-      && (
-        prop.target === 'singleTarget' ||
-        prop.target === 'multipleTargets'
-      )
-    ) {
-      action.targetIds = await (userInput.targetIds(prop.target));
-    }
-
-    task = {
-      prop,
-      targetIds: action.targetIds || [],
-    }
+  // Get the target Ids from the user input if they are expected and not found
+  if (
+    !action.task.targetIds?.length
+    && action.tabletopId
+    && 'prop' in action.task
+    && (
+      action.task.prop?.target === 'singleTarget' ||
+      action.task.prop?.target === 'multipleTargets'
+    )
+  ) {
+    action.task.targetIds = await (userInput.targetIds(action.task.prop.target));
   }
 
-  await applyTask(action, task, userInput);
+  await applyTask(action, action.task, userInput);
   return action;
 }

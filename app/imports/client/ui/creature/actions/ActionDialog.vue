@@ -41,38 +41,6 @@
         </div>
       </div>
     </div>
-    <v-card-actions>
-      <v-btn
-        text
-        @click="cancel"
-      >
-        Cancel
-      </v-btn>
-      <v-spacer slot="actions" />
-      <v-btn
-        v-show="!actionDone"
-        text
-        :disabled="!userInputReady || !resumeActionFn"
-        @click="stepAction"
-      >
-        Step
-      </v-btn>
-      <v-btn
-        v-if="actionDone"
-        text
-        @click="finishAction"
-      >
-        {{ 'Apply Results' }}
-      </v-btn>
-      <v-btn
-        v-else
-        text
-        :disabled="actionBusy"
-        @click="startAction"
-      >
-        {{ 'Start' }}
-      </v-btn>
-    </v-card-actions>
   </div>
 </template>
 
@@ -88,6 +56,7 @@ import EngineActions from '/imports/api/engine/action/EngineActions';
 import LogContent from '/imports/client/ui/log/LogContent.vue';
 //import RollInput from '/imports/client/ui/creature/actions/input/RollInput.vue';
 import TargetsInput from '/imports/client/ui/creature/actions/input/TargetsInput.vue';
+import CastSpellInput from '/imports/client/ui/creature/actions/input/CastSpellInput.vue';
 
 export default {
   components: {
@@ -98,6 +67,7 @@ export default {
     LogContent,
     //RollInput,
     TargetsInput,
+    CastSpellInput,
   },
   props: {
     actionId: {
@@ -161,7 +131,7 @@ export default {
         taskCount: undefined,
       };
       applyAction(
-        this.actionResult, this, { simulate: true, stepThrough, task: this.task}
+        this.actionResult, this, { simulate: true, stepThrough}
       ).then(() => {
         this.actionDone = true;
         // If we aren't stepping through close the dialog and apply the action
@@ -194,6 +164,7 @@ export default {
           this.activeInput = undefined;
           this.activeInputParams = {};
           this.userInputReady = false;
+          console.log({savedInput})
           resolve(savedInput);
         }
       });
@@ -246,6 +217,16 @@ export default {
     async check(suggestedParams) {
       this.userInput = suggestedParams;
       this.activeInput = 'check-input';
+      return this.promiseInput();
+    },
+    async castSpell(suggestedParams) {
+      this.userInput = suggestedParams;
+      console.log(this.action);
+      console.log(this.action.root);
+      this.activeInputParams = {
+        creatureId: this.action.creatureId,
+      };
+      this.activeInput = 'cast-spell-input';
       return this.promiseInput();
     },
   }

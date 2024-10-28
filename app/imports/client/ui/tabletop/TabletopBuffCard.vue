@@ -57,8 +57,6 @@
 import { getPropertyName } from '/imports/constants/PROPERTIES.js';
 import numberToSignedString from '/imports/api/utility/numberToSignedString.js';
 import doAction from '/imports/client/ui/creature/actions/doAction';
-import AttributeConsumedView from '/imports/client/ui/properties/components/actions/AttributeConsumedView.vue';
-import ItemConsumedView from '/imports/client/ui/properties/components/actions/ItemConsumedView.vue';
 import PropertyIcon from '/imports/client/ui/properties/shared/PropertyIcon.vue';
 import MarkdownText from '/imports/client/ui/components/MarkdownText.vue';
 import { snackbar } from '/imports/client/ui/components/snackbars/SnackbarQueue.js';
@@ -69,8 +67,6 @@ import { some } from 'lodash';
 
 export default {
   components: {
-    AttributeConsumedView,
-    ItemConsumedView,
     MarkdownText,
     PropertyIcon,
     TreeNodeList,
@@ -175,7 +171,12 @@ export default {
     doAction() {
       this.doActionLoading = true;
       this.$emit('close-menu')
-      doAction(this.model, this.$store, this.model._id).catch((e) => {
+      doAction({
+        propId: this.model._id,
+        creatureId: this.model.root.id,
+        $store: this.$store,
+        elementId: 'do-action-button',
+      }).catch((e) => {
         console.error(e);
         snackbar({ text: e.message || e.reason || e.toString() });
       }).finally(() => {

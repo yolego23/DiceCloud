@@ -37,15 +37,15 @@ export default {
   methods: {
     rest(){
       this.loading = true;
-      const emptyProp = {
-        _id: this.creatureId,
-        root: { id: this.creatureId },
-      };
-      doAction(emptyProp, this.$store, `rest-btn-${this.type}`, {
-        subtaskFn: 'reset',
-        prop: emptyProp,
-        targetIds: [this.creatureId],
-        eventName: this.type,
+      doAction({
+        creatureId: this.creatureId,
+        $store: this.$store, 
+        elementId: `rest-btn-${this.type}`, 
+        task: {
+          subtaskFn: 'reset',
+          targetIds: [this.creatureId],
+          eventName: this.type,
+        },
       }).catch(e => {
         console.error(e);
       }).finally(() => {

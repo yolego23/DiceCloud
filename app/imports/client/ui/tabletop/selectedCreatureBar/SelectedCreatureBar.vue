@@ -52,6 +52,7 @@
       <v-card
         v-else-if="activeIcon && activeIcon.tab"
         style="width: 300px"
+        data-id="tabletop-standard-card"
       >
         <v-card-title>
           <v-icon left>
@@ -167,33 +168,15 @@ import CreatureProperties from '/imports/api/creature/creatureProperties/Creatur
 import TabletopActionCard from '/imports/client/ui/tabletop/TabletopActionCard.vue';
 import TabletopBuffCard from '/imports/client/ui/tabletop/TabletopBuffCard.vue';
 import CreatureBarIcon from '/imports/client/ui/tabletop/selectedCreatureBar/CreatureBarIcon.vue';
-import { compact } from 'lodash';
-
-//import TabletopPortrait from '/imports/client/ui/tabletop/selectedCreatureBar/TabletopPortrait.vue';
-//import TabletopBuffIcons from '/imports/client/ui/tabletop/selectedCreatureBar/TabletopBuffIcons.vue';
-//import TabletopActions from '/imports/client/ui/tabletop/selectedCreatureBar/TabletopActions.vue';
-//import TabletopGroupedFolders from '/imports/client/ui/tabletop/selectedCreatureBar/TabletopGroupedFolders.vue';
-//import TabletopResources from '/imports/client/ui/tabletop/selectedCreatureBar/TabletopResources.vue';
-//import TabletopCreatureSheetTabs from '/imports/client/ui/tabletop/selectedCreatureBar/TabletopCreatureSheetTabs.vue';
-//import TabletopDetailPopover from '/imports/client/ui/tabletop/selectedCreatureBar/TabletopDetailPopover.vue';
+import { compact, chunk } from 'lodash';
+import doAction from '../../creature/actions/doAction';
 
 function splitToNChunks(inputArray, n) {
-  let result = [];
-  const array = [...inputArray] // Create shallow copy, because splice mutates array
-  for (let i = n; i > 0; i--) {
-      result.push(array.splice(0, Math.ceil(array.length / i)));
-  }
-  return result;
+  return chunk(inputArray, Math.ceil(inputArray.length / n));
 }
 
 export default {
   components: {
-    //TabletopPortrait,
-    //TabletopBuffIcons,
-    //TabletopActions,
-    //TabletopGroupedFolders,
-    //TabletopResources,
-    //TabletopCreatureSheetTabs,
     CreatureBarIcon,
     TabletopActionCard,
     TabletopBuffCard,
@@ -261,6 +244,7 @@ export default {
       }
       if (icon.actionName) {
         this.openStandardAction(icon.standardId)
+        return;
       }
       if (this.selectedIcon === icon) {
         this.selectedIcon = undefined;
@@ -285,6 +269,7 @@ export default {
       return outside;
     },
     openCharacterSheet(tab, elementId) {
+      this.menuOpen = false;
       this.$store.commit(
         'setTabForCharacterSheet',
         { id: this.creatureId, tab }
@@ -296,13 +281,26 @@ export default {
           creatureId: this.creatureId,
         },
       });
-      this.menuOpen = false;
     },
     openStandardAction(standardId) {
-      // TODO standard action dialogs
       this.menuOpen = false;
+      if (standardId === 'cast-spell') {
+        doAction({
+          creatureId: this.creatureId,
+          $store: this.$store,
+          elementId: standardId,
+          task: {
+            subtaskFn: 'castSpell',
+            targetIds: [],
+            params: {
+              spellId: undefined,
+            },
+          },
+        });
+      }
     },
     openPropertyDetails(elementId) {
+      this.menuOpen = false;
       const propId = this.selectedProp._id;
       this.$store.commit('pushDialogStack', {
         component: 'creature-property-dialog',
@@ -310,8 +308,6 @@ export default {
         data: { _id: propId },
         callback: () => propId
       });
-      // Close the menu while the dialog is open
-      this.menuOpen = false;
     },
   },
   meteor: {
@@ -344,7 +340,7 @@ export default {
 
       // Get the folders that could hide a property
       const folderGroupsById = {};
-     CreatureProperties.find({
+      CreatureProperties.find({
         'root.id': this.creatureId,
         type: 'folder',
         groupStats: true,

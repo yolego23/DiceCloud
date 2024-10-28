@@ -11,6 +11,7 @@
           outlined
           style="font-size: 16px; letter-spacing: normal;"
           class="mr-2"
+          data-id="do-action-button"
           :color="model.color || 'primary'"
           :loading="doActionLoading"
           :disabled="model.insufficientResources || !context.editPermission || !!targetingError"
@@ -224,7 +225,12 @@ export default {
     },
     doAction() {
       this.doActionLoading = true;
-      doAction(this.model, this.$store, this.model._id).catch((e) => {
+      doAction({
+        propId: this.model._id,
+        creatureId: this.model.root.id,
+        $store: this.$store,
+        elementId: 'do-action-button',
+      }).catch((e) => {
         console.error(e);
       }).finally(() => {
         this.doActionLoading = false;

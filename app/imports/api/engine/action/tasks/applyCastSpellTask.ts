@@ -1,25 +1,40 @@
 import { EngineAction } from '/imports/api/engine/action/EngineActions';
-import { PropTask } from '/imports/api/engine/action/tasks/Task';
-import TaskResult from '../tasks/TaskResult';
+import { CastSpellTask } from '/imports/api/engine/action/tasks/Task';
+import TaskResult from './TaskResult';
 import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
 import { getPropertiesOfType, getSingleProperty } from '/imports/api/engine/loadCreatures';
 import applyTask from '/imports/api/engine/action/tasks/applyTask';
-import applyActionProperty from './applyActionProperty';
+import applyActionProperty from '../applyProperties/applyActionProperty';
 
-export default async function applyFolderProperty(
-  task: PropTask, action: EngineAction, result: TaskResult, userInput: InputProvider
+export default async function applySpellProperty(
+  task: CastSpellTask, action: EngineAction, result: TaskResult, userInput: InputProvider
 ): Promise<void> {
   let prop = task.prop;
   // Ask the user how this spell is being cast
   const castOptions = await userInput.castSpell({
-    spellId: prop?._id,
+    spellId: task.params.spellId,
     slotId: prop?.castWithoutSpellSlots
       ? undefined
       : getSuggestedSpellSlotId(action.creatureId, prop),
     ritual: false,
   });
+  if (!castOptions.spellId) {
+    result.appendLog({
+      name: 'Error casting spell',
+      value: 'No spell was selected',
+    }, [action.creatureId]);
+    return;
+  }
   // If the user changed the spell they are casting, use that as the prop
   prop = getSingleProperty(action.creatureId, castOptions.spellId);
+
+  if (!prop) {
+    result.appendLog({
+      name: 'Error casting spell',
+      value: 'The chosen spell was not found',
+    }, [action.creatureId]);
+    return;
+  }
   let slotLevel = prop.level || 0;
   // Get the slot being cast with
   const slot = castOptions.slotId && getSingleProperty(action.creatureId, castOptions.slotId);
@@ -27,7 +42,7 @@ export default async function applyFolderProperty(
   logCastingMessage(slot?.spellSlotLevel?.value, castOptions, result, prop, task.targetIds);
   // Spend the spell slot and change the spell's casting level if a slot is used
   if (slot) {
-    await spendSpellSlot(action, prop, castOptions, userInput);
+    await spendSpellSlot(action, castOptions, userInput);
     slotLevel = slot.spellSlotLevel?.value || 0;
   }
   // Add the slot level to the scope
@@ -36,7 +51,10 @@ export default async function applyFolderProperty(
     'slotLevel': { value: slotLevel },
   };
   // Run the rest of the spell as if it were an action
-  return applyActionProperty(task, action, result, userInput);
+  return applyActionProperty({
+    prop,
+    targetIds: task.targetIds,
+  }, action, result, userInput);
 }
 
 function getSuggestedSpellSlotId(creatureId, prop) {
@@ -67,10 +85,9 @@ function logCastingMessage(slotLevel: number, castOptions, result: TaskResult, p
   }
 }
 
-function spendSpellSlot(action, prop, castOptions, userInput) {
+function spendSpellSlot(action, castOptions, userInput) {
   const slot = getSingleProperty(action.creatureId, castOptions.slotId);
   return applyTask(action, {
-    prop,
     targetIds: [action.creatureId],
     subtaskFn: 'damageProp',
     params: {

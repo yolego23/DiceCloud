@@ -119,13 +119,11 @@
 
 <script lang="js">
 import propertyViewerMixin from '/imports/client/ui/properties/viewers/shared/propertyViewerMixin';
-//TODO import doAction from '/imports/api/engine/actions/doAction';
 import ActionConditionView from '/imports/client/ui/properties/components/actions/ActionConditionView.vue';
 import AttributeConsumedView from '/imports/client/ui/properties/components/actions/AttributeConsumedView.vue';
 import ItemConsumedView from '/imports/client/ui/properties/components/actions/ItemConsumedView.vue';
 import PropertyIcon from '/imports/client/ui/properties/shared/PropertyIcon.vue';
 import updateCreatureProperty from '/imports/api/creature/creatureProperties/methods/updateCreatureProperty';
-import doCastSpell from '/imports/api/engine/action/methods/doCastSpell.js';
 import { snackbar } from '/imports/client/ui/components/snackbars/SnackbarQueue';
 import doAction from '/imports/client/ui/creature/actions/doAction';
 
@@ -190,7 +188,12 @@ export default {
   methods: {
     doAction() {
       this.doActionLoading = true;
-      doAction(this.model, this.$store, this.model._id).catch((e) => {
+      doAction({
+        creatureId: this.model.root.id,
+        $store: this.$store,
+        propId: this.model._id,
+        elementId: 'do-action-button',
+      }).catch((e) => {
         console.error(e);
         snackbar({ text: e.message || e.reason || e.toString() });
       }).finally(() => {

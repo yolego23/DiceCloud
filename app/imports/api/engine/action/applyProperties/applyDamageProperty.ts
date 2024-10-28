@@ -298,7 +298,6 @@ async function dealDamage(
     if (damageLeft === 0) return;
     // Do the damage
     const damageAdded = await applyTask(action, {
-      prop,
       targetIds: [targetId],
       subtaskFn: 'damageProp',
       params: {

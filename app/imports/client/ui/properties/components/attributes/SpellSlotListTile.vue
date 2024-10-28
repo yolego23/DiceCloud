@@ -1,6 +1,7 @@
 <template lang="html">
   <v-list-item
     :key="model._id"
+    :data-id="`spell-slot-list-tile-${model._id}`"
     class="spell-slot-list-tile"
     v-bind="$attrs"
     v-on="hasClickListener ? {click} : {}"
@@ -91,16 +92,15 @@ export default {
       this.$emit('click', e);
     },
     disabled(i) {
-      if (!this.context.editPermission) return true;
-      // Use these if only the next filled or empty slot can be clicked
-      // if (this.model.value ===  i) return false;
-      // if (this.model.value === i - 1) return false;
-      // return true
-      return false;
+      return !this.context.editPermission;
     },
     damageProperty({ type, value, ack }) {
       const model = this.model;
-      doAction(model, this.$store, model._id, {
+      doAction({
+        creatureId: model.root.id,
+        $store: this.$store,
+        elementId: `spell-slot-list-tile-${model._id}`,
+        task: {
         subtaskFn: 'damageProp',
         prop: model,
         targetIds: [model.root.id],
@@ -110,7 +110,7 @@ export default {
           value,
           targetProp: model,
         }
-      }).then(() =>{
+      }}).then(() =>{
         ack?.();
       }).catch((error) => {
         if (ack) {

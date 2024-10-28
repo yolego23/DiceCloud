@@ -49,7 +49,6 @@ export default async function applyAdjustmentProperty(
     return;
   }
   await applyTask(action, {
-    prop,
     targetIds: damageTargetIds,
     subtaskFn: 'damageProp',
     params: {

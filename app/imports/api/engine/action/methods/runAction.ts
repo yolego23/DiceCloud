@@ -6,33 +6,17 @@ import { getCreature } from '/imports/api/engine/loadCreatures';
 import applyAction from '/imports/api/engine/action/functions/applyAction';
 import writeActionResults from '../functions/writeActionResults';
 import getReplayChoicesInputProvider from '/imports/api/engine/action/functions/userInput/getReplayChoicesInputProvider';
-import Task from '/imports/api/engine/action/tasks/Task';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 
 export const runAction = new ValidatedMethod({
   name: 'actions.runAction',
-  validate: new SimpleSchema({
-    actionId: String,
-    decisions: {
-      type: Array,
-      optional: true,
-    },
-    'decisions.$': {
-      type: Object,
-      blackbox: true,
-    },
-    task: {
-      type: Object,
-      optional: true,
-      blackbox: true,
-    },
-  }).validator(),
+  validate: null,
   mixins: [RateLimiterMixin],
   rateLimit: {
     numRequests: 10,
     timeInterval: 5000,
   },
-  run: async function ({ actionId, decisions = [], task }: { actionId: string, decisions?: any[], task?: Task }) {
+  run: async function ({ actionId, decisions = [] }: { actionId: string, decisions?: any[] }) {
     // Get the action
     const action = await EngineActions.findOneAsync(actionId);
     if (!action) throw new Meteor.Error('not-found', 'Action not found');
@@ -44,7 +28,7 @@ export const runAction = new ValidatedMethod({
     const userInput = getReplayChoicesInputProvider(actionId, decisions);
 
     // Apply the action
-    await applyAction(action, userInput, { task });
+    await applyAction(action, userInput);
 
     // Persist changes
     const writePromise = writeActionResults(action);

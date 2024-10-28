@@ -1,70 +1,64 @@
 <template lang="html">
-  <dialog-base>
-    <template slot="toolbar">
-      <v-toolbar-title>
-        Cast a Spell
-      </v-toolbar-title>
-      <v-spacer />
-      <text-field
-        ref="focusFirst"
-        label="Name"
-        prepend-inner-icon="mdi-magnify"
-        regular
-        hide-details
-        :value="searchValue"
-        :error-messages="searchError"
-        :debounce="200"
-        @change="searchChanged"
-      />
-      <v-menu
-        v-model="filterMenuOpen"
-        left
-        :close-on-content-click="false"
-      >
-        <template #activator="{ on }">
+  <div>
+    <text-field
+      ref="focusFirst"
+      label="Name"
+      prepend-inner-icon="mdi-magnify"
+      regular
+      hide-details
+      :value="searchValue"
+      :error-messages="searchError"
+      :debounce="200"
+      @change="searchChanged"
+    />
+    <v-menu
+      v-model="filterMenuOpen"
+      left
+      :close-on-content-click="false"
+    >
+      <template #activator="{ on }">
+        <v-btn
+          icon
+          :class="{'primary--text': filtersApplied}"
+          v-on="on"
+        >
+          <v-icon>mdi-filter</v-icon>
+        </v-btn>
+      </template>
+      <v-list>
+        <v-list-item
+          v-for="filter in booleanFilters"
+          :key="filter.name"
+          style="height: 52px;"
+        >
+          <v-checkbox
+            v-model="filter.enabled"
+            style="flex-grow: 0; margin-right: 8px;"
+          />
+          <v-switch
+            v-model="filter.value"
+            :disabled="!filter.enabled"
+            :label="filter.name"
+          />
+        </v-list-item>
+        <div class="layout">
           <v-btn
-            icon
-            :class="{'primary--text': filtersApplied}"
-            v-on="on"
+            text
+            @click="clearBooleanFilters"
           >
-            <v-icon>mdi-filter</v-icon>
+            Clear
           </v-btn>
-        </template>
-        <v-list>
-          <v-list-item
-            v-for="filter in booleanFilters"
-            :key="filter.name"
-            style="height: 52px;"
+          <v-spacer />
+          <v-btn
+            text
+            class="primary--text"
+            @click="filterMenuOpen = false"
           >
-            <v-checkbox
-              v-model="filter.enabled"
-              style="flex-grow: 0; margin-right: 8px;"
-            />
-            <v-switch
-              v-model="filter.value"
-              :disabled="!filter.enabled"
-              :label="filter.name"
-            />
-          </v-list-item>
-          <div class="layout">
-            <v-btn
-              text
-              @click="clearBooleanFilters"
-            >
-              Clear
-            </v-btn>
-            <v-spacer />
-            <v-btn
-              text
-              class="primary--text"
-              @click="filterMenuOpen = false"
-            >
-              Done
-            </v-btn>
-          </div>
-        </v-list>
-      </v-menu>
-    </template>
+            Done
+          </v-btn>
+        </div>
+      </v-list>
+    </v-menu>
     <split-list-layout>
       <template slot="left">
         <div
@@ -151,29 +145,19 @@
         </v-list-item-group>
       </template>
     </split-list-layout>
-    <template slot="actions">
-      <v-spacer />
-      <v-btn
-        text
-        @click="$store.dispatch('popDialogStack')"
-      >
-        Cancel
-      </v-btn>
-      <v-btn
-        text
-        :disabled="!canCast"
-        class="mx-2 px-4"
-        color="primary"
-        @click="cast"
-      >
-        Cast
-      </v-btn>
-    </template>
-  </dialog-base>
+    <v-btn
+      text
+      :disabled="!canCast"
+      class="mx-2 px-4"
+      color="primary"
+      @click="cast"
+    >
+      Cast
+    </v-btn>
+  </div>
 </template>
 
 <script lang="js">
-import DialogBase from '/imports/client/ui/dialogStack/DialogBase.vue';
 import SplitListLayout from '/imports/client/ui/properties/components/attributes/SplitListLayout.vue';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import spellsWithSubheaders from '/imports/client/ui/properties/components/spells/spellsWithSubheaders';
@@ -193,7 +177,6 @@ const slotFilter = {
 
 export default {
   components: {
-    DialogBase,
     SplitListLayout,
     SpellSlotListTile,
     SpellListTile,
@@ -207,6 +190,10 @@ export default {
       type: String,
       default: undefined,
     },
+    value: {
+      type: Object,
+      required: true,
+    },
     spellId: {
       type: String,
       default: undefined,
@@ -215,8 +202,8 @@ export default {
   data() {
     return {
       searchString: undefined,
-      selectedSlotId: this.slotId,
-      selectedSpellId: this.spellId,
+      selectedSlotId: this.value.slotId,
+      selectedSpellId: this.value.spellId,
       selectedSlot: undefined,
       selectedSpell: undefined,
       searchValue: undefined,
@@ -253,7 +240,8 @@ export default {
   watch: {
     selectedSpellId: {
       handler(spellId) {
-        this.selectedSpell = CreatureProperties.findOne(spellId)
+        this.selectedSpell = CreatureProperties.findOne(spellId);
+        this.$emit('input', { ...this.value, spellId });
       },
       immediate: true
     },
@@ -291,6 +279,11 @@ export default {
     selectedSlotId: {
       handler(slotId) {
         this.selectedSlot = CreatureProperties.findOne(slotId);
+        if (slotId === 'ritual') {
+          this.$emit('input', { ...this.value, slotId: undefined, ritual: true });
+        } else {
+          this.$emit('input', { ...this.value, slotId, ritual: false });
+        }
       },
       immediate: true
     },
@@ -347,14 +340,7 @@ export default {
       }
     },
     cast() {
-      let selectedSlotId = this.selectedSlotId;
-      const ritual = selectedSlotId === 'ritual';
-      if (selectedSlotId === 'no-slot' || selectedSlotId === 'ritual') selectedSlotId = undefined;
-      this.$store.dispatch('popDialogStack', {
-        spellId: this.selectedSpellId,
-        slotId: selectedSlotId,
-        ritual,
-      });
+      this.$emit('continue');
     }
   },
   meteor: {

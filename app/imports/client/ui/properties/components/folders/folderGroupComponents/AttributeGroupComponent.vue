@@ -95,17 +95,22 @@ export default {
     damageProperty({value, type, ack}) {
       const model = this.model;
       if (type === 'increment') value = -value;
-      doAction(model, this.$store, model._id, {
-        subtaskFn: 'damageProp',
-        prop: model,
-        targetIds: [model.root.id],
-        params: {
-          title: getPropertyTitle(model),
-          operation: type,
-          value,
-          targetProp: model,
+      doAction({
+        creatureId: model.root.id,
+        $store: this.$store,
+        elementId: this.dataId,
+        task: {
+          subtaskFn: 'damageProp',
+          prop: model,
+          targetIds: [model.root.id],
+          params: {
+            title: getPropertyTitle(model),
+            operation: type,
+            value,
+            targetProp: model,
+          }
         }
-      }).then(() =>{
+      }).then(() => {
         ack?.();
       }).catch((error) => {
         if (ack) {

@@ -38,7 +38,7 @@ type InputProvider = {
   /**
    * Get the details of casting a spell
    */
-  castSpell(suggestedParams: CastSpellParams): Promise<CastSpellParams>;
+  castSpell(suggestedParams: Partial<CastSpellParams>): Promise<CastSpellParams>;
 }
 
 export type Advantage = 0 | 1 | -1;

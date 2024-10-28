@@ -1,6 +1,7 @@
 import SimpleSchema from 'simpl-schema';
 import TaskResult from './tasks/TaskResult';
 import LogContentSchema from '/imports/api/creature/log/LogContentSchema';
+import Task from './tasks/Task';
 
 const EngineActions = new Mongo.Collection<EngineAction>('actions');
 
@@ -9,10 +10,9 @@ export interface EngineAction {
   _isSimulation?: boolean;
   _stepThrough?: boolean;
   _decisions?: any[],
+  task: Task;
   creatureId: string;
-  rootPropId?: string;
   tabletopId?: string;
-  targetIds?: string[];
   results: TaskResult[];
   taskCount: number;
 }
@@ -21,27 +21,25 @@ const ActionSchema = new SimpleSchema({
   creatureId: {
     type: String,
     regEx: SimpleSchema.RegEx.Id,
+    // @ts-expect-error index not defined
     index: 1,
   },
   rootPropId: {
     type: String,
     regEx: SimpleSchema.RegEx.Id,
+    optional: true,
   },
   tabletopId: {
     type: String,
     regEx: SimpleSchema.RegEx.Id,
     optional: true,
+    // @ts-expect-error index not defined
     index: 1,
   },
-  targetIds: {
-    type: Array,
-    optional: true,
+  task: {
+    type: Object,
+    blackbox: true,
   },
-  'targetIds.$': {
-    type: String,
-    regEx: SimpleSchema.RegEx.Id,
-  },
-
   // Applied properties
   results: {
     type: Array,

@@ -74,7 +74,6 @@ export default async function applyActionProperty(
   if (prop.actionType === 'event' && prop.variableName) {
     await applyResetTask({
       subtaskFn: 'reset',
-      prop,
       eventName: prop.variableName,
       targetIds: [action.creatureId],
     }, action, result, userInput);

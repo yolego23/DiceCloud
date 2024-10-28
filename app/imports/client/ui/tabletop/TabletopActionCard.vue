@@ -16,6 +16,7 @@
           :style="{
             fontSize: '24px'
           }"
+          data-id="do-action-button"
           :color="model.color || 'primary'"
           :loading="doActionLoading"
           :disabled="model.insufficientResources || !context.editPermission"
@@ -217,7 +218,12 @@ export default {
     doAction() {
       this.doActionLoading = true;
       this.$emit('close-menu')
-      doAction(this.model, this.$store, this.model._id).catch((e) => {
+      doAction({
+        propId: this.model._id,
+        creatureId: this.model.root.id,
+        $store: this.$store,
+        elementId: 'do-action-button',
+      }).catch((e) => {
         console.error(e);
         snackbar({ text: e.message || e.reason || e.toString() });
       }).finally(() => {

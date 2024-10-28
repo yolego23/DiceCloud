@@ -6,7 +6,6 @@ import Context from '../../../../parser/types/Context';
  * Each mutation may apply to a different subset of targets
  */
 export default class TaskResult {
-  propId: string;
   // The targets of the original task
   targetIds: string[];
   scope: any;
@@ -21,8 +20,7 @@ export default class TaskResult {
   // properties can be found on variable.previous
   pushScope?: any;
   mutations: Mutation[];
-  constructor(propId: string, targetIds: string[]) {
-    this.propId = propId;
+  constructor(targetIds: string[]) {
     this.targetIds = targetIds;
     this.mutations = [];
     this.scope = {};

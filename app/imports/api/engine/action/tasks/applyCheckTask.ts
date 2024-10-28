@@ -14,7 +14,6 @@ import TaskResult from '/imports/api/engine/action/tasks/TaskResult';
 export default async function applyCheckTask(
   task: CheckTask, action: EngineAction, result: TaskResult, userInput: InputProvider
 ): Promise<void> {
-  const prop = task.prop;
   const targetIds = task.targetIds;
 
   if (task.contest) {
@@ -45,7 +44,7 @@ export default async function applyCheckTask(
 
     if (skill || ability) {
       // Create a new result after before triggers have run
-      result = new TaskResult(task.prop._id, task.targetIds);
+      result = new TaskResult(task.targetIds);
       action.results.push(result);
     }
 
@@ -75,7 +74,7 @@ export default async function applyCheckTask(
       name: checkName,
       inline: true,
       ...dc !== null && { value: `DC **${dc}**` },
-      ...prop?.silent && { silenced: prop.silent }
+      ...task?.silent && { silenced: task.silent }
     }, [targetId]);
 
     // Roll the dice
@@ -109,7 +108,7 @@ export default async function applyCheckTask(
       name: rollName,
       value: `${resultPrefix}\n**${totalValue}**`,
       inline: true,
-      ...prop?.silent && { silenced: prop.silent }
+      ...task?.silent && { silenced: task.silent }
     }, [targetId]);
 
     // After check triggers

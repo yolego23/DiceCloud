@@ -25,7 +25,7 @@ export default async function applyItemAsAmmoTask(task: ItemAsAmmoTask, action: 
   await applyTriggers(action, item, task.targetIds, 'ammoTriggerIds.before', userInput);
 
   // Create a new result after before triggers have run
-  result = new TaskResult(task.prop._id, task.targetIds);
+  result = new TaskResult(task.targetIds);
   action.results.push(result);
 
   // Refetch the scope properties
@@ -51,7 +51,7 @@ export default async function applyItemAsAmmoTask(task: ItemAsAmmoTask, action: 
       contents: [{
         name: getPropertyTitle(item) || 'Ammo',
         inline: false,
-        silenced: prop.silent,
+        ...prop?.silent && { silenced: true },
       }]
     },
   });

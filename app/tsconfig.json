@@ -3,7 +3,11 @@
     "module": "esNext",
     "moduleResolution": "Node",
     "target": "es2018",
-    "lib": ["esnext", "dom"],
+    "lib": [
+      "esnext",
+      "dom",
+      "dom.iterable"
+    ],
     "jsx": "preserve",
     "strict": true,
     "strictNullChecks": true,

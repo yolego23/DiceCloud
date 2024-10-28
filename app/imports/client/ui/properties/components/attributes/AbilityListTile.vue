@@ -92,14 +92,19 @@ export default {
     },
     check() {
       this.checkLoading = true;
-      doAction(this.model, this.$store, `check-btn-${this.model._id}`, {
-        subtaskFn: 'check',
-        prop: this.model,
-        targetIds: [this.model.root.id],
-        advantage: this.model.advantage,
-        skillVariableName: undefined,
-        abilityVariableName: this.model.variableName,
-        dc: null,
+      doAction({
+        creatureId: this.model.root.id,
+        $store: this.$store,
+        elementId: `check-btn-${this.model._id}`,
+        task: {
+          subtaskFn: 'check',
+          prop: this.model,
+          targetIds: [this.model.root.id],
+          advantage: this.model.advantage,
+          skillVariableName: undefined,
+          abilityVariableName: this.model.variableName,
+          dc: null,
+        },
       }).catch(error => {
         snackbar({ text: error.reason || error.message || error.toString() });
         console.error(error);

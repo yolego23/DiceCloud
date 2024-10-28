@@ -166,7 +166,9 @@ export default {
     actions(){
       return getProperties(this.activeCreatureId, { type: 'action', actionType: { $ne: 'event'} });
     },
-    moreTargets(){
+    moreTargets() {
+      // Disable portrait targeting for now, they aren't used by the action engine yet
+      return false;
       const activeAction = CreatureProperties.findOne(this.activeActionId);
       if (!activeAction) return;
       if (activeAction.target === 'singleTarget') {

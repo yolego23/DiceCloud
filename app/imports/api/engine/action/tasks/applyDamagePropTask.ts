@@ -10,8 +10,6 @@ import numberToSignedString from '/imports/api/utility/numberToSignedString';
 export default async function applyDamagePropTask(
   task: DamagePropTask, action: EngineAction, result: TaskResult, userInput
 ): Promise<number> {
-  const prop = task.prop;
-
   if (task.targetIds.length > 1) {
     throw 'This subtask can only be called on a single target';
   }
@@ -45,7 +43,7 @@ export default async function applyDamagePropTask(
   await applyTriggers(action, targetProp, [targetId], 'damageTriggerIds.before', userInput);
 
   // Create a new result after triggers have run
-  result = new TaskResult(task.prop._id, task.targetIds);
+  result = new TaskResult(task.targetIds);
   action.results.push(result);
 
   // Refetch the scope properties
@@ -75,7 +73,7 @@ export default async function applyDamagePropTask(
       value: `${statName}${operation === 'set' ? ' set to' : ''}` +
         ` ${value}`,
       inline: true,
-      ...prop.silent && { silenced: true },
+      ...task.silent && { silenced: true },
     }, task.targetIds);
   }
 
@@ -106,7 +104,7 @@ export default async function applyDamagePropTask(
         name: title,
         value: `${getPropertyTitle(targetProp)} set from ${targetProp.value} to ${value}`,
         inline: true,
-        ...prop.silent && { silenced: true },
+        ...task.silent && { silenced: true },
       }]
     });
     if (targetId === action.creatureId) setScope(result, targetProp, newValue, damage);
@@ -132,7 +130,7 @@ export default async function applyDamagePropTask(
         name: increment >= 0 ? 'Attribute damaged' : 'Attribute restored',
         value: `${numberToSignedString(-increment)} ${getPropertyTitle(targetProp)}`,
         inline: true,
-        ...prop.silent && { silenced: true },
+        ...task.silent && { silenced: true },
       }]
     });
     if (targetId === action.creatureId) setScope(result, targetProp, newValue, damage);

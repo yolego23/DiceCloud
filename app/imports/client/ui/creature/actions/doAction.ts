@@ -6,32 +6,46 @@ import InputProvider from '/imports/api/engine/action/functions/userInput/InputP
 import applyAction from '/imports/api/engine/action/functions/applyAction';
 import { runAction } from '/imports/api/engine/action/methods/runAction';
 import getDeterministicDiceRoller from '/imports/api/engine/action/functions/userInput/getDeterministicDiceRoller';
+import { getSingleProperty } from '../../../../api/engine/loadCreatures';
+
+type BaseDoActionParams = {
+  creatureId: string;
+  $store: Store<any>;
+  elementId: string;
+}
+
+type DoTaskParams = BaseDoActionParams & {
+  task: Task;
+  propId?: undefined;
+}
+
+type DoActionParams = BaseDoActionParams & {
+  propId: string;
+  task?: undefined;
+}
 
 /**
  * Apply an action on the client that first creates the action on both the client and server, then 
  * simulates the action, opening the action dialog if necessary to get input from the user, saving
  * the decisions the user makes, then applying the  action as a method call to the server with the
  * saved decisions, which will persist the action results.
- * 
- * @param prop The property initializing the action, if no task is applied the property will be 
- * applied as the starting point of the action
- * @param $store The Vuex store instance that has the dialog stack
- * @param elementId The element to animate the dialog from if a dialog needs to open
- * @param task The task to apply instead of applying the property itself
  */
-export default async function doAction(
-  prop: { _id: string, root: { id: string } },
-  $store: Store<any>,
-  elementId: string,
-  task?: Task,
-) {
+export default async function doAction({ propId, creatureId, $store, elementId, task }: DoActionParams | DoTaskParams) {
+  if (!task) {
+    if (!propId) throw new Meteor.Error('no-prop-id', 'Either propId or task must be provided');
+    task = {
+      prop: getSingleProperty(creatureId, propId),
+      targetIds: [],
+    };
+  }
   // Create the action
   const actionId = insertAction.call({
     action: {
-      creatureId: prop.root.id,
-      rootPropId: prop._id,
+      creatureId,
+      task,
       results: [],
       taskCount: 0,
+      _decisions: [],
     }
   });
 
@@ -45,9 +59,9 @@ export default async function doAction(
   // Either way, call the action method afterwards
   try {
     const finishedAction = await applyAction(
-      action, getErrorOnInputRequestProvider(action._id), { simulate: true, task }
+      action, getErrorOnInputRequestProvider(action._id), { simulate: true }
     );
-    return callActionMethod(finishedAction, task);
+    return callActionMethod(finishedAction);
   } catch (e) {
     if (e !== 'input-requested') throw e;
     return new Promise(resolve => {
@@ -60,7 +74,7 @@ export default async function doAction(
         },
         callback(action: EngineAction) {
           if (!action) return;
-          resolve(callActionMethod(action, task));
+          resolve(callActionMethod(action));
           return elementId;
         },
       });
@@ -68,10 +82,9 @@ export default async function doAction(
   }
 }
 
-const callActionMethod = (action: EngineAction, task?: Task) => {
+const callActionMethod = (action: EngineAction) => {
   if (!action._id) throw new Meteor.Error('type-error', 'Action must have and _id');
-  //@ts-expect-error callAsync not defined in types
-  return runAction.callAsync({ actionId: action._id, decisions: action._decisions, task });
+  return runAction.callAsync({ actionId: action._id, decisions: action._decisions });
 }
 
 const throwInputRequestedError = () => {
@@ -86,6 +99,7 @@ function getErrorOnInputRequestProvider(actionId) {
     choose: throwInputRequestedError,
     advantage: throwInputRequestedError,
     check: throwInputRequestedError,
+    castSpell: throwInputRequestedError,
   }
   return errorOnInputRequest;
 }

@@ -22,7 +22,7 @@ export const insertAction = new ValidatedMethod({
     action.tabletopId = creature.tabletopId;
 
     // Ensure that all the targeted creatures exist and share a tabletop
-    if (action.targetIds) for (const targetId of action.targetIds) {
+    if (action.task.targetIds) for (const targetId of action.task.targetIds) {
       const target = getCreature(targetId);
       if (!target) {
         throw new Meteor.Error('not-found', 'Target creature does not exist');

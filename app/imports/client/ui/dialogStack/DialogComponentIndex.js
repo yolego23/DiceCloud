@@ -1,6 +1,5 @@
 // Load commonly used dialogs immediately
 import ActionDialog from '/imports/client/ui/creature/actions/ActionDialog.vue';
-import CastSpellWithSlotDialog from '/imports/client/ui/properties/components/spells/CastSpellWithSlotDialog.vue';
 import CharacterCreationDialog from '/imports/client/ui/creature/character/CharacterCreationDialog.vue';
 import CharacterSheetDialog from '/imports/client/ui/tabletop/CharacterSheetDialog.vue';
 import CreatureFormDialog from '/imports/client/ui/creature/CreatureFormDialog.vue';
@@ -42,7 +41,6 @@ const UsernameDialog = () => import('/imports/client/ui/user/UsernameDialog.vue'
 export default {
   ActionDialog,
   ArchiveDialog,
-  CastSpellWithSlotDialog,
   CharacterCreationDialog,
   CharacterImportDialog,
   CharacterSheetDialog,

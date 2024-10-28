@@ -180,16 +180,21 @@ export default {
     },
     damage({operation, value, ack}){
       const model = this.model;
-      doAction(model, this.$store, model._id, {
-        subtaskFn: 'damageProp',
-        prop: model,
-        targetIds: [model.root.id],
-        params: {
-          title: getPropertyTitle(model),
-          operation: operation,
-          value,
-          targetProp: model,
-        }
+      doAction({
+        creatureId: model.root.id,
+        $store: this.$store,
+        elementId: '??',
+        task: {
+          subtaskFn: 'damageProp',
+          prop: model,
+          targetIds: [model.root.id],
+          params: {
+            title: getPropertyTitle(model),
+            operation: operation,
+            value,
+            targetProp: model,
+          }
+        },
       }).then(() =>{
         ack?.();
       }).catch((error) => {
