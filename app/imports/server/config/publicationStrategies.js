@@ -6,12 +6,12 @@ const { NO_MERGE_MULTI } = DDPServer.publicationStrategies;
   have been sent to the client over multiple subscriptions. Lower memory use, but sends more updates
   to the clients, which will need to merge them.
 */
-Meteor.server.setPublicationStrategy(
-  'creatureProperties', NO_MERGE_MULTI
-);
-Meteor.server.setPublicationStrategy(
-  'creatureVariables', NO_MERGE_MULTI
-);
-Meteor.server.setPublicationStrategy(
-  'libraryNodes', NO_MERGE_MULTI
-);
+// Meteor.server.setPublicationStrategy(
+//   'creatureProperties', NO_MERGE_MULTI
+// );
+// Meteor.server.setPublicationStrategy(
+//   'creatureVariables', NO_MERGE_MULTI
+// );
+// Meteor.server.setPublicationStrategy(
+//   'libraryNodes', NO_MERGE_MULTI
+// );
