@@ -25,6 +25,10 @@
           @set-input-ready="setInputReady"
         />
         <div
+          v-else
+          class="action-input"
+        />
+        <div
           class="log-preview card-raised-background d-flex flex-column align-end justify-end"
           style="flex-basis: 256px;"
         >
@@ -40,6 +44,24 @@
           </v-card>
         </div>
       </div>
+    </div>
+    <div class="action-dialog-actions pa-2 d-flex justify-end">
+      <v-btn
+        v-if="actionDone"
+        text
+        color="accent"
+        @click="finishAction"
+      >
+        Done
+      </v-btn>
+      <v-btn
+        v-else
+        text
+        color="accent"
+        @click="continueAction"
+      >
+        Next
+      </v-btn>
     </div>
   </div>
 </template>
@@ -134,10 +156,8 @@ export default {
         this.actionResult, this, { simulate: true, stepThrough}
       ).then(() => {
         this.actionDone = true;
-        // If we aren't stepping through close the dialog and apply the action
-        if (!this.actionResult._stepThrough) {
-          this.$store.dispatch('popDialogStack', this.actionResult);
-        }
+        this.actionBusy = false;
+        this.activeInput = undefined;
       });
     },
     stepAction() {
@@ -164,7 +184,6 @@ export default {
           this.activeInput = undefined;
           this.activeInputParams = {};
           this.userInputReady = false;
-          console.log({savedInput})
           resolve(savedInput);
         }
       });
