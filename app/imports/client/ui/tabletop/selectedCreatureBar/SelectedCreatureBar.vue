@@ -327,8 +327,8 @@ export default {
       // Get the standard icons
       const standardIconsById = {
         'cast-spell': {standardId: 'cast-spell', groupName: 'Standard Actions', icon: 'mdi-fire', actionName: 'Cast Spell' },
-        'make-check': {standardId: 'make-check', groupName: 'Standard Actions', icon: 'mdi-radiobox-marked',  actionName: 'Check' },
-        'roll-dice': {standardId: 'roll-dice', groupName: 'Standard Actions', icon: 'mdi-dice-d20', actionName: 'Roll' },
+        // 'make-check': {standardId: 'make-check', groupName: 'Standard Actions', icon: 'mdi-radiobox-marked',  actionName: 'Check' },
+        // 'roll-dice': {standardId: 'roll-dice', groupName: 'Standard Actions', icon: 'mdi-dice-d20', actionName: 'Roll' },
         'tab-stats': {standardId: 'tab-stats', groupName: 'Tabs', icon: 'mdi-chart-box', tab: 'stats', tabName: 'Stats' },
         'tab-actions': {standardId: 'tab-actions', groupName: 'Tabs', icon: 'mdi-lightning-bolt', tab: 'actions', tabName: 'Actions' },
         'tab-spells': this.creature?.settings?.hideSpellsTab ? undefined : {standardId: 'tab-spells', groupName: 'Tabs', icon: 'mdi-fire', tab: 'spells', tabName: 'Spells' },
