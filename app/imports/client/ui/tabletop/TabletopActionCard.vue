@@ -109,6 +109,7 @@ import TreeNodeList from '/imports/client/ui/components/tree/TreeNodeList.vue';
 import { docsToForest } from '/imports/api/parenting/parentingFunctions';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { some } from 'lodash';
+import { getFilter } from '/imports/api/parenting/parentingFunctions';
 
 export default {
   components: {
@@ -184,9 +185,9 @@ export default {
   },
   meteor: {
     children() {
-      const indicesOfTerminatingProps = [];
+      const excludedRanges = [];
       const decendants = CreatureProperties.find({
-        'ancestors.id': this.model._id,
+        ...getFilter.descendants(this.model),
         'removed': { $ne: true },
       }, {
         sort: {left: 1}
@@ -194,9 +195,9 @@ export default {
         // Get all the props we don't want to show the decendants of and
         // where they might appear in the ancestor list
         if (prop.type === 'buff' || prop.type === 'folder') {
-          indicesOfTerminatingProps.push({
-            id: prop._id,
-            ancestorIndex: prop.ancestors.length,
+          excludedRanges.push({
+            left: prop.left,
+            right: prop.right,
           });
         }
         return prop;
@@ -204,8 +205,8 @@ export default {
         // Filter out folders entirely
         if (prop.type === 'folder') return false;
         // Filter out decendants of terminating props
-        return !some(indicesOfTerminatingProps, buffIndex => {
-          return prop.ancestors[buffIndex.ancestorIndex]?.id === buffIndex.id;
+        return !some(excludedRanges, range => {
+          return prop.left > range.left && prop.right < range.right;
         });
       });
       return docsToForest(decendants);

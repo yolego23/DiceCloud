@@ -87,7 +87,7 @@ import { getPropertyName } from '/imports/constants/PROPERTIES';
 import PropertyForm from '/imports/client/ui/properties/PropertyForm.vue';
 import getPropertyTitle from '/imports/client/ui/properties/shared/getPropertyTitle';
 import { assertEditPermission } from '/imports/api/creature/creatures/creaturePermissions';
-import { get, findLast } from 'lodash';
+import { get } from 'lodash';
 import equipItem from '/imports/api/creature/creatureProperties/methods/equipItem';
 import { snackbar } from '/imports/client/ui/components/snackbars/SnackbarQueue';
 import insertProperty from '/imports/api/creature/creatureProperties/methods/insertProperty';

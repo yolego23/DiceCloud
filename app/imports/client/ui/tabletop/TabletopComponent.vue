@@ -109,12 +109,11 @@ import { assertEditPermission } from '/imports/api/creature/creatures/creaturePe
 import SelectedCreatureBar from '/imports/client/ui/tabletop/selectedCreatureBar/SelectedCreatureBar.vue';
 import addCreaturesFromLibraryToTabletop from '/imports/api/tabletop/methods/addCreaturesFromLibraryToTabletop';
 import removeCreatureFromTabletop from '/imports/api/tabletop/methods/removeCreatureFromTabletop';
+import { getFilter } from '/imports/api/parenting/parentingFunctions';
 
 const getProperties = function (creatureId, selector = {}) {
   return CreatureProperties.find({
-    'ancestors.id': {
-      $eq: creatureId,
-    },
+    ...getFilter.descendantsOfRoot(creatureId),
     inactive: { $ne: true },
     removed: { $ne: true },
     overridden: { $ne: true },

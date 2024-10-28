@@ -145,15 +145,6 @@
         </v-list-item-group>
       </template>
     </split-list-layout>
-    <v-btn
-      text
-      :disabled="!canCast"
-      class="mx-2 px-4"
-      color="primary"
-      @click="cast"
-    >
-      Cast
-    </v-btn>
   </div>
 </template>
 
@@ -186,17 +177,9 @@ export default {
       type: String,
       required: true,
     },
-    slotId: {
-      type: String,
-      default: undefined,
-    },
     value: {
       type: Object,
       required: true,
-    },
-    spellId: {
-      type: String,
-      default: undefined,
     },
   },
   data() {
@@ -258,7 +241,7 @@ export default {
         } else {
           const newSlot = find(
             CreatureProperties.find({
-              'ancestors.id': this.creatureId,
+              ...getFilter.descendantsOfRoot(this.creatureId),
               ...slotFilter
             }, {
               sort: { 'spellSlotLevel.value': 1, order: 1 },
@@ -339,9 +322,6 @@ export default {
           );
       }
     },
-    cast() {
-      this.$emit('continue');
-    }
   },
   meteor: {
     spells() {
@@ -379,7 +359,7 @@ export default {
     },
     spellSlots() {
       return CreatureProperties.find({
-        'ancestors.id': this.creatureId,
+        ...getFilter.descendantsOfRoot(this.creatureId),
         ...slotFilter
       }, {
         sort: { 'spellSlotLevel.value': 1, order: 1 },

@@ -1,31 +1,59 @@
 <template lang="html">
   <div class="log-content">
     <div
-      v-for="(content, index) in model"
+      v-for="(contentGroup, index) in contentByTargetId"
       :key="index"
-      class="content-line"
     >
-      <h4
-        class="content-name"
-        style="min-height: 12px;"
+      <h3
+        v-if="contentGroup.targetIds.length"
+        class="content-target-ids"
       >
-        {{ content.name }}
-      </h4>
-      <markdown-text
-        v-if="content.value"
-        class="content-value"
-        :markdown="content.value"
-      />
+        <v-icon>mdi-chevron-right</v-icon>
+        <v-list-item-avatar
+          v-for="creature in contentGroup.targetCreatures"
+          :key="creature._id"
+          :color="model.color || 'grey'"
+          size="32"
+        >
+          <img
+            v-if="creature.avatarPicture"
+            :src="creature.avatarPicture"
+            :alt="creature.name"
+          >
+          <span v-else>
+            {{ creature.name && creature.name[0] || '?' }}
+          </span>
+        </v-list-item-avatar>
+      </h3>
       <div
-        v-else
-        style="min-height: 12px;"
-      />
+        v-for="(content, contentIndex) in contentGroup.content"
+        :key="contentIndex"
+        class="content-line"
+      >
+        <h4
+          class="content-name"
+          style="min-height: 12px;"
+        >
+          {{ content.name }}
+        </h4>
+        <markdown-text
+          v-if="content.value"
+          class="content-value"
+          :markdown="content.value"
+        />
+        <div
+          v-else
+          style="min-height: 12px;"
+        />
+      </div>
     </div>
   </div>
 </template>
 
 <script lang="js">
+import { isEqual } from 'lodash';
 import MarkdownText from '/imports/client/ui/components/MarkdownText.vue';
+import Creatures from '/imports/api/creature/creatures/Creatures';
 
 export default {
   components: {
@@ -37,6 +65,35 @@ export default {
       default: () => [],
     },
   },
+  meteor: {
+    contentByTargetId() {
+      const content = [];
+      const creaturesById = {};
+      const getCreature = creatureId => {
+        if (creaturesById[creatureId]) return creaturesById[creatureId];
+        return creaturesById[creatureId] = Creatures.findOne(creatureId, {
+          fields: { _id: 1, avatarPicture: 1, name: 1 },
+        });
+      };
+      let currentContent = undefined;
+      for (const contentItem of this.model) {
+        if (!currentContent || !isEqual(currentContent.targetIds, contentItem.targetIds)) {
+          if (currentContent) {
+            content.push(currentContent);
+          }
+          currentContent = {
+            targetIds: contentItem.targetIds,
+            targetCreatures: contentItem.targetIds.map(getCreature),
+            content: [contentItem],
+          };
+        } else {
+          currentContent.content.push(contentItem);
+        }
+      }
+      content.push(currentContent);
+      return content;
+    }
+  }
 }
 </script>
 

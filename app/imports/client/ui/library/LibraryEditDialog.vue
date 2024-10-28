@@ -107,6 +107,7 @@ import Libraries, { updateLibraryName, updateLibraryDescription, updateLibrarySh
 import LibraryNodes, { restoreLibraryNode } from '/imports/api/library/LibraryNodes';
 import TreeNodeView from '/imports/client/ui/properties/treeNodeViews/TreeNodeView.vue';
 import { snackbar } from '/imports/client/ui/components/snackbars/SnackbarQueue';
+import { getFilter } from '/imports/api/parenting/parentingFunctions';
 
 export default {
   components: {
@@ -186,7 +187,7 @@ export default {
     },
     removedDocs() {
       return LibraryNodes.find({
-        'ancestors.0.id': this._id,
+        ...getFilter.descendantsOfRoot(this._id),
         removed: true,
         removedWith: { $exists: false },
       }, {

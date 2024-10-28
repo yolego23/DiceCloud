@@ -64,6 +64,7 @@ import TreeNodeList from '/imports/client/ui/components/tree/TreeNodeList.vue';
 import { docsToForest } from '/imports/api/parenting/parentingFunctions';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { some } from 'lodash';
+import { getFilter } from '/imports/api/parenting/parentingFunctions';
 
 export default {
   components: {
@@ -137,31 +138,29 @@ export default {
   },
   meteor: {
     children() {
-      const indicesOfTerminatingProps = [];
-      const decendants = CreatureProperties.find({
-        'ancestors.id': this.model._id,
+      const excludedRanges = [];
+      const descendants = CreatureProperties.find({
+        ...getFilter.descendants(this.model),
         'removed': { $ne: true },
       }, {
         sort: {left: 1}
       }).map(prop => {
-        // Get all the props we don't want to show the decendants of and
-        // where they might appear in the ancestor list
-        if (prop.type === 'buff' || prop.type === 'folder') {
-          indicesOfTerminatingProps.push({
-            id: prop._id,
-            ancestorIndex: prop.ancestors.length,
-          });
-        }
+        // Get all the props we don't want to show the descendants of and what range they cover in
+        // the tree
+        excludedRanges.push({
+          left: prop.left,
+          right: prop.right,
+        });
         return prop;
       }).filter(prop => {
         // Filter out folders entirely
         if (prop.type === 'folder') return false;
-        // Filter out decendants of terminating props
-        return !some(indicesOfTerminatingProps, buffIndex => {
-          return prop.ancestors[buffIndex.ancestorIndex]?.id === buffIndex.id;
+        // Filter out descendants of terminating props
+        return !some(excludedRanges, range => {
+          return prop.left > range.left && prop.right < range.right;
         });
       });
-      return docsToForest(decendants);
+      return docsToForest(descendants);
     },
   },
   methods: {
