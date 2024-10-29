@@ -87,7 +87,6 @@
       <tree-node-list
         v-if="children && children.length"
         start-expanded
-        show-external-details
         :children="children"
         :root="model.root"
         @selected="e => $emit('sub-click', e)"
