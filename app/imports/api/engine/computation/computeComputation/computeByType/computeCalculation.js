@@ -133,7 +133,7 @@ export function aggregateCalculationEffects(calcObj, getEffectFromId) {
   // Multiply
   if (aggregator.mul) {
     // Wrap the previous node in brackets if it's another operator
-    if (calcObj.parseType === 'operator') {
+    if (calcObj.valueNode.parseType === 'operator') {
       calcObj.valueNode = parenthesis.create({
         content: calcObj.valueNode
       });

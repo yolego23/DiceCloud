@@ -82,10 +82,12 @@ export async function runActionById(propId, targetIds?, userInput = inputProvide
 function createAction(prop: any, targetIds?: string[]) {
   const action: EngineAction = {
     creatureId: prop.root.id,
-    rootPropId: prop._id,
     results: [],
     taskCount: 0,
-    targetIds,
+    task: {
+      prop,
+      targetIds: targetIds || [],
+    }
   };
   return EngineActions.insertAsync(action);
 }

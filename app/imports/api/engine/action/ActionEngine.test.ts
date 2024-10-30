@@ -205,10 +205,12 @@ describe('Interrupt action system', function () {
 function createAction(prop, targetIds?) {
   const action: EngineAction = {
     creatureId: prop.root.id,
-    rootPropId: prop._id,
     results: [],
     taskCount: 0,
-    targetIds,
+    task: {
+      prop,
+      targetIds,
+    }
   };
   return EngineActions.insertAsync(action);
 }

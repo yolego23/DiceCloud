@@ -48,7 +48,7 @@ export default async function recalculateCalculation(
   // Resolve the modified valueNode, use the same context
   const {
     result: finalResult
-  } = await resolve(parseLevel, calcObj.parseNode, scope, context);
+  } = await resolve(parseLevel, calcObj.valueNode, scope, context);
 
   // Store the errors
   calcObj.errors = context.errors;

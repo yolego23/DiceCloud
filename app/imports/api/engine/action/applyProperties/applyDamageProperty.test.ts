@@ -8,8 +8,8 @@ import {
 } from '/imports/api/engine/action/functions/actionEngineTest.testFn';
 
 const [
-  creatureId, targetCreatureId, targetCreature2Id, damageTargetId, damageSelfId, targetCreatureHitPointsId, targetCreature2HitPointsId, selfHitPointsId
-] = getRandomIds(100);
+  creatureId, targetCreatureId, targetCreature2Id, damageTargetId, damageSelfId, targetCreatureHitPointsId, targetCreature2HitPointsId, selfHitPointsId, damageWithEffectsId, effectId, effect2Id,
+] = getRandomIds(20);
 
 const actionTestCreature = {
   _id: creatureId,
@@ -33,6 +33,29 @@ const actionTestCreature = {
       attributeType: 'healthBar',
       variableName: 'hitPoints',
       baseValue: { calculation: '20' },
+    },
+    {
+      _id: damageWithEffectsId,
+      type: 'damage',
+      target: 'target',
+      amount: { calculation: '1d13 + 3' },
+      tags: ['tag']
+    },
+    {
+      _id: effectId,
+      type: 'effect',
+      operation: 'add',
+      amount: { calculation: '1' },
+      targetByTags: true,
+      targetTags: ['tag'],
+    },
+    {
+      _id: effect2Id,
+      type: 'effect',
+      operation: 'mul',
+      amount: { calculation: '2' },
+      targetByTags: true,
+      targetTags: ['tag'],
     },
   ],
 }
@@ -183,6 +206,37 @@ describe('Apply Damage Properties', function () {
           propId: targetCreature2HitPointsId,
           type: 'attribute',
           inc: { damage: 14, value: -14 },
+        },
+      ],
+    }]);
+  });
+
+  it.only('Applies effects when doing damage', async function () {
+    const action = await runActionById(damageWithEffectsId, [targetCreatureId]);
+    assert.exists(action);
+    assert.deepEqual(allMutations(action), [{
+      contents: [
+        {
+          inline: true,
+          name: 'Damage',
+          value: '(1d13 [7] + 4) * 2',
+        }
+      ],
+      targetIds: [targetCreatureId],
+    }, {
+      contents: [
+        {
+          inline: true,
+          name: 'Attribute damaged',
+          value: '−22 Hit Points',
+        }
+      ],
+      targetIds: [targetCreatureId],
+      updates: [
+        {
+          propId: targetCreatureHitPointsId,
+          type: 'attribute',
+          inc: { damage: 22, value: -22 },
         },
       ],
     }]);
