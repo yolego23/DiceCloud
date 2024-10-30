@@ -84,10 +84,9 @@ export function getProperties(creatureId: string): CreatureProperty[] {
 export function getPropertiesOfType(creatureId, propType) {
   const creature = loadedCreatures.get(creatureId);
   if (creature) {
-    const props = Array.from(
-      creature.properties.values()
-        .filter(prop => !prop.removed && prop.type === propType)
-    ).sort((a, b) => a.left - b.left);
+    const props = Array.from(creature.properties.values())
+      .filter(prop => !prop.removed && prop.type === propType)
+      .sort((a, b) => a.left - b.left);
     return EJSON.clone(props);
   }
   // console.time(`Cache miss on creature properties: ${creatureId}`)
@@ -111,10 +110,9 @@ export function getPropertiesOfType(creatureId, propType) {
 export function getPropertiesByFilter(creatureId, filterFn: (any) => boolean, mongoFilter: Mongo.Selector<object>) {
   const creature = loadedCreatures.get(creatureId);
   if (creature) {
-    const props: CreatureProperty[] = Array.from(
-      creature.properties.values()
-        .filter(filterFn)
-    ).sort((a, b) => a.left - b.left);
+    const props: CreatureProperty[] = Array.from(creature.properties.values())
+      .filter(filterFn)
+      .sort((a, b) => a.left - b.left);
     return EJSON.clone(props);
   }
   // console.time(`Cache miss on creature properties: ${creatureId}`)

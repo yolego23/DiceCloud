@@ -211,7 +211,7 @@ describe('Apply Damage Properties', function () {
     }]);
   });
 
-  it.only('Applies effects when doing damage', async function () {
+  it('Applies effects when doing damage', async function () {
     const action = await runActionById(damageWithEffectsId, [targetCreatureId]);
     assert.exists(action);
     assert.deepEqual(allMutations(action), [{
