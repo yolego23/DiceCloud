@@ -4,6 +4,7 @@ import { assertViewPermission } from '/imports/api/creature/creatures/creaturePe
 import computeCreature from '/imports/api/engine/computeCreature';
 import VERSION from '/imports/constants/VERSION';
 import { getCreature, getProperties, getVariables } from '/imports/api/engine/loadCreatures';
+import SCHEMA_VERSION from '/imports/constants/SCHEMA_VERSION';
 
 JsonRoutes.add('get', 'api/creature/:id', function (req, res) {
   const creatureId = req.params.id;
@@ -46,6 +47,9 @@ JsonRoutes.add('get', 'api/creature/:id', function (req, res) {
   // Send the results
   JsonRoutes.sendResult(res, {
     data: {
+      meta: {
+        schemaVersion: SCHEMA_VERSION,
+      },
       creatures: [creature],
       creatureProperties: getProperties(creatureId),
       creatureVariables: getVariables(creatureId),

@@ -11,7 +11,7 @@
           outlined
           style="font-size: 16px; letter-spacing: normal;"
           class="mr-2"
-          data-id="do-action-button"
+          :data-id="`${model._id}-do-action-button`"
           :color="model.color || 'primary'"
           :loading="doActionLoading"
           :disabled="model.insufficientResources || !context.editPermission || !!targetingError"
@@ -89,7 +89,6 @@
       <tree-node-list
         v-if="children && children.length"
         start-expanded
-        show-external-details
         :children="children"
         :root="model.root"
         @selected="e => $emit('sub-click', e)"
@@ -229,7 +228,7 @@ export default {
         propId: this.model._id,
         creatureId: this.model.root.id,
         $store: this.$store,
-        elementId: 'do-action-button',
+        elementId: `${this.model._id}-do-action-button`,
       }).catch((e) => {
         console.error(e);
       }).finally(() => {

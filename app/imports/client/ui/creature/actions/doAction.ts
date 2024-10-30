@@ -30,7 +30,7 @@ type DoActionParams = BaseDoActionParams & {
  * the decisions the user makes, then applying the  action as a method call to the server with the
  * saved decisions, which will persist the action results.
  */
-export default async function doAction({ propId, creatureId, $store, elementId, task }: DoActionParams | DoTaskParams) {
+export default async function doAction({ propId, creatureId, $store, elementId, task }: DoActionParams | DoTaskParams): Promise<any | void> {
   if (!task) {
     if (!propId) throw new Meteor.Error('no-prop-id', 'Either propId or task must be provided');
     task = {
@@ -64,7 +64,7 @@ export default async function doAction({ propId, creatureId, $store, elementId, 
     return callActionMethod(finishedAction);
   } catch (e) {
     if (e !== 'input-requested') throw e;
-    return new Promise(resolve => {
+    return new Promise<void>((resolve, reject) => {
       $store.commit('pushDialogStack', {
         component: 'action-dialog',
         elementId,
@@ -72,9 +72,14 @@ export default async function doAction({ propId, creatureId, $store, elementId, 
           actionId,
           task,
         },
-        callback(action: EngineAction) {
-          if (!action) return;
-          resolve(callActionMethod(action));
+        async callback(action: EngineAction) {
+          try {
+            if (action) await callActionMethod(action);
+            resolve();
+          }
+          catch (e) {
+            reject(e);
+          }
           return elementId;
         },
       });

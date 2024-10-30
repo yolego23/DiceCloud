@@ -48,6 +48,7 @@ function unloadCreature(creatureId, subscription) {
 export function getSingleProperty(creatureId: string, propertyId: string) {
   const creature = loadedCreatures.get(creatureId)
   const property = creature?.properties.get(propertyId);
+  if (property?.removed) return;
   if (property) {
     return EJSON.clone(property);
   }
@@ -64,8 +65,9 @@ export function getSingleProperty(creatureId: string, propertyId: string) {
 export function getProperties(creatureId: string): CreatureProperty[] {
   const creature = loadedCreatures.get(creatureId);
   if (creature) {
-    const props = Array.from(creature.properties.values());
-    props.sort((a, b) => a.left - b.left);
+    const props = Array.from(creature.properties.values())
+      .sort((a, b) => a.left - b.left)
+      .filter(prop => !prop.removed);
     return EJSON.clone(props);
   }
   // console.time(`Cache miss on creature properties: ${creatureId}`)
@@ -82,13 +84,10 @@ export function getProperties(creatureId: string): CreatureProperty[] {
 export function getPropertiesOfType(creatureId, propType) {
   const creature = loadedCreatures.get(creatureId);
   if (creature) {
-    const props: CreatureProperty[] = []
-    for (const prop of creature.properties.values()) {
-      if (prop.type === propType) {
-        props.push(prop);
-      }
-    }
-    props.sort((a, b) => a.left - b.left);
+    const props = Array.from(
+      creature.properties.values()
+        .filter(prop => !prop.removed && prop.type === propType)
+    ).sort((a, b) => a.left - b.left);
     return EJSON.clone(props);
   }
   // console.time(`Cache miss on creature properties: ${creatureId}`)
@@ -112,13 +111,10 @@ export function getPropertiesOfType(creatureId, propType) {
 export function getPropertiesByFilter(creatureId, filterFn: (any) => boolean, mongoFilter: Mongo.Selector<object>) {
   const creature = loadedCreatures.get(creatureId);
   if (creature) {
-    const props: CreatureProperty[] = []
-    for (const prop of creature.properties.values()) {
-      if (filterFn(prop)) {
-        props.push(prop);
-      }
-    }
-    props.sort((a, b) => a.left - b.left);
+    const props: CreatureProperty[] = Array.from(
+      creature.properties.values()
+        .filter(filterFn)
+    ).sort((a, b) => a.left - b.left);
     return EJSON.clone(props);
   }
   // console.time(`Cache miss on creature properties: ${creatureId}`)
@@ -235,7 +231,7 @@ export function getPropertyChildren(creatureId, property) {
     if (!creature) return [];
     const props: CreatureProperty[] = [];
     for (const prop of creature.properties.values()) {
-      if (prop.parentId === property._id) {
+      if (prop.parentId === property._id && prop.removed !== true) {
         props.push(prop);
       }
     }

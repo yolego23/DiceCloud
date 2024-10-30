@@ -1,5 +1,4 @@
 import SimpleSchema from 'simpl-schema';
-import '/imports/api/sharing/sharing';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 
 export interface Shared {

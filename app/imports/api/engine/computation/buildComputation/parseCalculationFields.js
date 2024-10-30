@@ -103,7 +103,7 @@ function subDocsExist(prop, key) {
 
 export function removeEmptyCalculations(prop) {
   prop._computationDetails.emptyCalculations.forEach(calcObj => {
-    if (!calcObj.effects?.length) {
+    if (!calcObj.effectIds?.length && !calcObj.proficiencyIds?.length) {
       unset(prop, calcObj._key);
     }
   });
