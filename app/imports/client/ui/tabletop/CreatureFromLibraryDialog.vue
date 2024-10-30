@@ -148,7 +148,7 @@
       >
         Browse community libraries
       </v-btn>
-      <v-btn
+      <!-- <v-btn
         v-if="!dummySlot"
         text
         small
@@ -156,7 +156,7 @@
         @click="insertCustomFiller"
       >
         Insert New Creature
-      </v-btn>
+      </v-btn> -->
     </v-layout>
     
     <template slot="actions">
