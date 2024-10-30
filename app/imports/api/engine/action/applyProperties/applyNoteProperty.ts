@@ -9,8 +9,9 @@ export default async function applyNoteProperty(
   task: PropTask, action: EngineAction, result: TaskResult, inputProvider: InputProvider
 ): Promise<void> {
   const prop = task.prop;
-  let contents: LogContent[] | undefined = undefined;
-  const logContent: LogContent = {};
+  const logContent: LogContent & { silenced: boolean } = {
+    silenced: prop.silent,
+  };
   if (prop.name) logContent.name = prop.name;
   if (prop.summary?.text) {
     await recalculateInlineCalculations(prop.summary, action, 'reduce', inputProvider);
@@ -18,19 +19,15 @@ export default async function applyNoteProperty(
   }
 
   if (logContent.name || logContent.value) {
-    contents = [logContent];
+    result.appendLog(logContent, task.targetIds);
   }
   // Log description
   if (prop.description?.text) {
     await recalculateInlineCalculations(prop.description, action, 'reduce', inputProvider);
-    if (!contents) contents = [];
-    contents.push({ value: prop.description.value });
-  }
-  if (contents) {
-    result.mutations.push({
-      contents,
-      targetIds: task.targetIds,
-    });
+    result.appendLog({
+      value: prop.description.value,
+      silenced: prop.silent,
+    }, task.targetIds);
   }
   return applyDefaultAfterPropTasks(action, prop, task.targetIds, inputProvider);
 }

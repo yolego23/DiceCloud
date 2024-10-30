@@ -26,7 +26,13 @@ export default class TaskResult {
     this.scope = {};
   }
   // Appends the log content to the latest mutation
-  appendLog(content: LogContent, targetIds: string[]) {
+  appendLog(content: LogContent & { silenced: boolean }, targetIds: string[]) {
+    // Create a shallow copy of the content
+    const logContent: LogContent = { ...content };
+    // remove false silenced properties
+    if (!logContent.silenced) {
+      delete logContent.silenced;
+    }
     if (!this.mutations.length) {
       this.mutations.push({ targetIds, contents: [] });
     }
@@ -34,7 +40,7 @@ export default class TaskResult {
     if (!latestMutation.contents) {
       latestMutation.contents = [];
     }
-    latestMutation.contents.push(content);
+    latestMutation.contents.push(logContent);
   }
   appendParserContextErrors(context: Context, targetIds) {
     if (!context.errors?.length) return;

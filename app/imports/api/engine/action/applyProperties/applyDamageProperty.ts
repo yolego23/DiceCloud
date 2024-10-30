@@ -188,6 +188,7 @@ export default async function applyDamageProperty(
     name: logName,
     value: logValue.join('\n'),
     inline: true,
+    silenced: prop.silent,
   }, damageTargets);
   return applyDefaultAfterPropTasks(action, prop, damageTargets, inputProvider);
 }

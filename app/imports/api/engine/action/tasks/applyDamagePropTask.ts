@@ -73,7 +73,7 @@ export default async function applyDamagePropTask(
       value: `${statName}${operation === 'set' ? ' set to' : ''}` +
         ` ${value}`,
       inline: true,
-      ...task.silent && { silenced: true },
+      silenced: task.silent ?? false,
     }, task.targetIds);
   }
 

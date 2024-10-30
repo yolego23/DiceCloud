@@ -74,7 +74,7 @@ export default async function applyCheckTask(
       name: checkName,
       inline: true,
       ...dc !== null && { value: `DC **${dc}**` },
-      ...task?.silent && { silenced: task.silent }
+      silenced: task.silent ?? false,
     }, [targetId]);
 
     // Roll the dice
@@ -108,7 +108,7 @@ export default async function applyCheckTask(
       name: rollName,
       value: `${resultPrefix}\n**${totalValue}**`,
       inline: true,
-      ...task?.silent && { silenced: task.silent }
+      silenced: task.silent ?? false,
     }, [targetId]);
 
     // After check triggers

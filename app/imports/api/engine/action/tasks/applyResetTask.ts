@@ -20,10 +20,16 @@ export default async function applyResetTask(
   // Print a title for rest events
   switch (task.eventName) {
     case 'shortRest':
-      result.appendLog({ name: 'Short Rest' }, task.targetIds);
+      result.appendLog({
+        name: 'Short Rest',
+        silenced: task.silent ?? false,
+      }, task.targetIds);
       break;
     case 'longRest':
-      result.appendLog({ name: 'Long Rest' }, task.targetIds);
+      result.appendLog({
+        name: 'Long Rest',
+        silenced: task.silent ?? false,
+      }, task.targetIds);
       break;
   }
 

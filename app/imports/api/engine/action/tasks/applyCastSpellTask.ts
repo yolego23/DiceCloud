@@ -22,6 +22,7 @@ export default async function applySpellProperty(
     result.appendLog({
       name: 'Error casting spell',
       value: 'No spell was selected',
+      silenced: false,
     }, [action.creatureId]);
     return;
   }
@@ -32,6 +33,7 @@ export default async function applySpellProperty(
     result.appendLog({
       name: 'Error casting spell',
       value: 'The chosen spell was not found',
+      silenced: false,
     }, [action.creatureId]);
     return;
   }
@@ -80,7 +82,8 @@ function logCastingMessage(slotLevel: number, castOptions, result: TaskResult, p
   // Post the message
   if (message) {
     result.appendLog({
-      name: `Casting at level ${slotLevel}`
+      name: `Casting at level ${slotLevel}`,
+      silenced: prop.silent,
     }, targetIds);
   }
 }

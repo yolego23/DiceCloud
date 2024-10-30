@@ -62,7 +62,8 @@ export default async function applyBuffProperty(
     }
     result.appendLog({
       name: getPropertyTitle(prop),
-      value: logValue
+      value: logValue,
+      silenced: prop.silent,
     }, [target]);
 
     // remove all the computed fields
@@ -114,6 +115,7 @@ async function crystalizeVariables(
               result.appendLog({
                 name: 'Error',
                 value: 'Variable `~target` should not be used without a property: ~target.property',
+                silenced: prop.silent,
               }, task.targetIds);
             }
             return node;

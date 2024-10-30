@@ -27,7 +27,11 @@ export default async function applyRollProperty(
     logValue.push(toString(rolled));
   }
   errors?.forEach(error => {
-    result.appendLog({ name: 'Error', value: error.message }, task.targetIds);
+    result.appendLog({
+      name: 'Error',
+      value: error.message,
+      silenced: prop.silent,
+    }, task.targetIds);
   });
 
   // Store the result
@@ -52,7 +56,7 @@ export default async function applyRollProperty(
     name: prop.name,
     value: logValue.join('\n'),
     inline: true,
-    ...prop.silent && { silenced: true },
+    silenced: prop.silent,
   }, task.targetIds);
 
   // Apply children

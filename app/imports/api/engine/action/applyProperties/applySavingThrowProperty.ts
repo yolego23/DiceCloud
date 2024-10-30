@@ -28,6 +28,7 @@ export default async function applySavingThrowProperty(
     result.appendLog({
       name: 'Error',
       value: 'Saving throw requires a DC',
+      silenced: prop.silent,
     }, saveTargetIds);
     return applyDefaultAfterPropTasks(action, prop, saveTargetIds, inputProvider);
   }
@@ -37,7 +38,7 @@ export default async function applySavingThrowProperty(
     name: getPropertyTitle(prop),
     value: `DC **${dc}**`,
     inline: true,
-    ...prop.silent && { silenced: prop.silent }
+    silenced: prop.silent,
   }, saveTargetIds);
 
   const targetId = saveTargetIds[0];
@@ -60,6 +61,7 @@ export default async function applySavingThrowProperty(
     result.appendLog({
       name: 'Saving throw error',
       value: 'No saving throw found: ' + prop.stat,
+      silenced: prop.silent,
     }, [targetId]);
     return applyDefaultAfterPropTasks(action, prop, [targetId], inputProvider);
   }
@@ -103,10 +105,11 @@ export default async function applySavingThrowProperty(
     result.pushScope['~saveFailed'] = { value: true };
     result.pushScope['~saveSucceeded'] = { value: false };
   }
-  if (!prop.silent) result.appendLog({
+  result.appendLog({
     name: saveSuccess ? 'Successful save' : 'Failed save',
     value: resultPrefix + '\n**' + resultValue + '**',
     inline: true,
+    silenced: prop.silent,
   }, [targetId]);
   return applyDefaultAfterPropTasks(action, prop, [targetId], inputProvider);
 }

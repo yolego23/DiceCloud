@@ -32,7 +32,8 @@ export default async function applyBranchProperty(
       if (!isFinite(prop.condition?.value)) {
         result.appendLog({
           name: 'Branch Error',
-          value: `Index did not resolve into a valid number, got \`${prop.condition?.value}\` instead`
+          value: `Index did not resolve into a valid number, got \`${prop.condition?.value}\` instead`,
+          silenced: prop.silent,
         }, targets);
         return applyAfterTasksSkipChildren(action, prop, targets, userInput);
       }
@@ -47,7 +48,8 @@ export default async function applyBranchProperty(
       if (scope['~attackHit']?.value) {
         if (!targets.length && !prop.silent) {
           result.appendLog({
-            value: '**On hit**'
+            value: '**On hit**',
+            silenced: prop.silent,
           }, targets);
         }
         return applyDefaultAfterPropTasks(action, prop, targets, userInput);
@@ -60,7 +62,8 @@ export default async function applyBranchProperty(
       if (scope['~attackMiss']?.value) {
         if (!targets.length && !prop.silent) {
           result.appendLog({
-            value: '**On miss**'
+            value: '**On miss**',
+            silenced: prop.silent,
           }, targets);
         }
         return applyDefaultAfterPropTasks(action, prop, targets, userInput);
@@ -73,7 +76,8 @@ export default async function applyBranchProperty(
       if (scope['~saveFailed']?.value) {
         if (!targets.length && !prop.silent) {
           result.appendLog({
-            value: '**On failed save**'
+            value: '**On failed save**',
+            silenced: prop.silent,
           }, targets);
         }
         return applyDefaultAfterPropTasks(action, prop, targets, userInput);
@@ -86,7 +90,8 @@ export default async function applyBranchProperty(
       if (scope['~saveSucceeded']?.value) {
         if (!targets.length && !prop.silent) {
           result.appendLog({
-            value: '**On save**'
+            value: '**On save**',
+            silenced: prop.silent,
           }, targets);
         }
         return applyDefaultAfterPropTasks(action, prop, targets, userInput);

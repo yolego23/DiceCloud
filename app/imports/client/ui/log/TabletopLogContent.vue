@@ -64,6 +64,10 @@ export default {
       type: Array,
       default: () => [],
     },
+    showSilenced: {
+      type: Boolean,
+      default: false,
+    },
   },
   meteor: {
     contentByTargetId() {
@@ -76,7 +80,9 @@ export default {
         });
       };
       let currentContent = undefined;
-      for (const contentItem of this.model) {
+      const filteredModel = this.model
+        .filter(contentItem => !contentItem.silenced || this.showSilenced);
+      for (const contentItem of filteredModel) {
         if (!currentContent || !isEqual(currentContent.targetIds, contentItem.targetIds)) {
           if (currentContent) {
             content.push(currentContent);
@@ -90,7 +96,7 @@ export default {
           currentContent.content.push(contentItem);
         }
       }
-      content.push(currentContent);
+      currentContent && content.push(currentContent);
       return content;
     }
   }

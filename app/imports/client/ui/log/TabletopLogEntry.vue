@@ -30,7 +30,10 @@
       v-if="model.text || (model.content && model.content.length)"
       class="px-2 pt-0 pb-2"
     >
-      <tabletop-log-content :model="model.content" />
+      <tabletop-log-content
+        :model="model.content"
+        :show-silenced="showSilenced"
+      />
     </v-card-text>
   </v-card>
 </template>
@@ -38,6 +41,9 @@
 <script lang="js">
 import TabletopLogContent from '/imports/client/ui/log/TabletopLogContent.vue';
 import Creatures from '/imports/api/creature/creatures/Creatures';
+
+// TODO move content filtering to this component so we can determine if any content was hidden 
+// then show a button to reveal silenced content at a lower opacity
 
 export default {
   components: {
@@ -49,6 +55,11 @@ export default {
       required: true,
     },
     showName: Boolean,
+  },
+  data() {
+    return {
+      showSilenced: false,
+    };
   },
   meteor: {
     creature() {

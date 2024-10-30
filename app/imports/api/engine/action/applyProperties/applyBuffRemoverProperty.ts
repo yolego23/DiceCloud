@@ -19,7 +19,7 @@ export default async function applyBuffRemoverProperty(
     // Log Name
     result.appendLog({
       name: getPropertyTitle(prop),
-      ...prop.silent && { silenced: true },
+      silenced: prop.silent,
     }, task.targetIds)
   }
 
@@ -41,6 +41,7 @@ export default async function applyBuffRemoverProperty(
       result.appendLog({
         name: 'Error',
         value: 'Buff remover does not have a parent buff to remove',
+        silenced: prop.silent,
       }, [targetId]);
       return;
     }

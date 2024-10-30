@@ -27,7 +27,7 @@ export default async function applyActionProperty(
   result.appendLog({
     name: getPropertyTitle(prop),
     ...prop.summary && { value: prop.summary.value },
-    ...prop.silent && { silenced: true },
+    silenced: prop.silent,
   }, targetIds);
 
   // Check Uses
@@ -35,7 +35,7 @@ export default async function applyActionProperty(
     result.appendLog({
       name: 'Error',
       value: `${getPropertyTitle(prop)} does not have enough uses left`,
-      ...prop.silent && { silenced: true },
+      silenced: prop.silent,
     }, targetIds);
     return;
   }
@@ -45,7 +45,7 @@ export default async function applyActionProperty(
     result.appendLog({
       name: 'Error',
       value: 'This creature doesn\'t have sufficient resources to perform this action',
-      ...prop.silent && { silenced: true },
+      silenced: prop.silent,
     }, targetIds);
     return;
   }

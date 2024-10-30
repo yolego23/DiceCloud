@@ -17,12 +17,14 @@ export default async function applyCreatureTemplateProperty(
   // Creatures are always summoned as children of the action's creature
   result.appendLog({
     name: getPropertyTitle(prop),
-    value: logValue
+    value: logValue,
+    silenced: prop.silent,
   }, []);
 
   result.appendLog({
     name: 'Warning',
-    value: 'Creature summoning is not yet implemented...'
+    value: 'Creature summoning is not yet implemented...',
+    silenced: prop.silent,
   }, []);
 
   return;

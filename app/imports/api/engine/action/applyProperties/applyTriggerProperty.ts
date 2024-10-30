@@ -1,3 +1,4 @@
+import TaskResult, { LogContent } from '../tasks/TaskResult';
 import { EngineAction } from '/imports/api/engine/action/EngineActions';
 import { applyDefaultAfterPropTasks } from '/imports/api/engine/action/functions/applyTaskGroups';
 import recalculateInlineCalculations from '/imports/api/engine/action/functions/recalculateInlineCalculations';
@@ -5,12 +6,12 @@ import { PropTask } from '/imports/api/engine/action/tasks/Task';
 import getPropertyTitle from '/imports/api/utility/getPropertyTitle';
 
 export default async function applyTriggerProperty(
-  task: PropTask, action: EngineAction, result, userInput
+  task: PropTask, action: EngineAction, result: TaskResult, userInput
 ): Promise<void> {
   const prop = task.prop;
-  const logContent = {
+  const logContent: LogContent & { silenced: boolean } = {
     name: getPropertyTitle(prop),
-    ...prop.silent && { silenced: true },
+    silenced: prop.silent,
   }
 
   // Add the trigger description to the log
@@ -21,6 +22,6 @@ export default async function applyTriggerProperty(
     }
   }
 
-  result.appendLog(logContent);
+  result.appendLog(logContent, task.targetIds);
   return applyDefaultAfterPropTasks(action, prop, task.targetIds, userInput);
 }

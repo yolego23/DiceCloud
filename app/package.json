@@ -9,7 +9,7 @@
   },
   "author": "Thaum Rystra",
   "scripts": {
-    "serve": "meteor run --raw-logs",
+    "serve": "meteor run --raw-logs --settings settings.json",
     "debug": "meteor --inspect",
     "bundle-viz": "meteor --extra-packages bundle-visualizer --production",
     "lint": "eslint .",
