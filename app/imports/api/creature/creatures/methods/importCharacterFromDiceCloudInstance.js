@@ -1,5 +1,4 @@
 import SCHEMA_VERSION from '/imports/constants/SCHEMA_VERSION';
-import SimpleSchema from 'simpl-schema';
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import Creatures from '/imports/api/creature/creatures/Creatures';
@@ -10,9 +9,9 @@ import { removeCreatureWork } from '/imports/api/creature/creatures/methods/remo
 import assertHasCharactersSlots from '/imports/api/creature/creatures/methods/assertHasCharacterSlots';
 import verifyArchiveSafety from '/imports/api/creature/archive/methods/verifyArchiveSafety';
 
-let migrateApiCharacter;
+let migrateApiCreature;
 if (Meteor.isServer) {
-  migrateApiCharacter = require('/imports/migrations/apiCreature/migrateApiCreature2To3.js').default;
+  migrateApiCreature = require('/app/imports/migrations/apiCreature/migrateApiCreature.js').default;
 }
 
 function importApiCreature(apiCreature, userId) {
@@ -24,7 +23,7 @@ function importApiCreature(apiCreature, userId) {
   }
 
   // Migrate and verify the archive meets the current schema
-  migrateApiCharacter(apiCreature);
+  migrateApiCreature(apiCreature);
 
   // Asset that the api creature is (mildly) safe
   verifyArchiveSafety({
