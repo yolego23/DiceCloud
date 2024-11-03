@@ -11,7 +11,7 @@ import verifyArchiveSafety from '/imports/api/creature/archive/methods/verifyArc
 
 let migrateApiCreature;
 if (Meteor.isServer) {
-  migrateApiCreature = require('/app/imports/migrations/apiCreature/migrateApiCreature.js').default;
+  migrateApiCreature = require('/imports/migrations/apiCreature/migrateApiCreature.js').default;
 }
 
 function importApiCreature(apiCreature, userId) {
