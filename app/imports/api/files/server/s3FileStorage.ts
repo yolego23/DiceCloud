@@ -168,7 +168,7 @@ if (Meteor.settings.useS3) {
           const fileColl = this;
           s3.getObject(opts, function (error) {
             if (error) {
-              console.error(error);
+              console.error('Error getting s3 object', opts, error);
               if (!http.response.finished) {
                 http.response.end();
               }
