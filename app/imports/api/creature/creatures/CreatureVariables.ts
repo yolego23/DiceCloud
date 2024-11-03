@@ -2,9 +2,6 @@ import { getSingleProperty } from '/imports/api/engine/loadCreatures';
 import ParseNode from '/imports/parser/parseTree/ParseNode';
 import array from '/imports/parser/parseTree/array';
 import constant, { isFiniteNode } from '/imports/parser/parseTree/constant';
-import resolve from '/imports/parser/resolve';
-import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
-import Context from '/imports/parser/types/Context';
 
 //set up the collection for creature variables
 const CreatureVariables = new Mongo.Collection('creatureVariables');
@@ -35,7 +32,11 @@ if (Meteor.isServer) {
 export function getFromScope(name: string, scope) {
   let value = scope?.[name];
   if (value?._propId) {
-    value = getSingleProperty(scope._creatureId, value._propId);
+    const [propId, rowIdentifier, rowNumber] = value._propId.split('_');
+    value = getSingleProperty(scope._creatureId, propId);
+    if (rowIdentifier === 'row' && value?.type === 'pointBuy') {
+      value = value.values[rowNumber];
+    }
   }
   return value;
 }
