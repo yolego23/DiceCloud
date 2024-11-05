@@ -1,22 +1,23 @@
-import buildCreatureComputation from './computation/buildCreatureComputation.js';
-import computeCreatureComputation from './computation/computeCreatureComputation.js';
-import writeAlteredProperties from './computation/writeComputation/writeAlteredProperties.js';
-import writeScope from './computation/writeComputation/writeScope.js';
-import writeErrors from './computation/writeComputation/writeErrors.js';
+import buildCreatureComputation from './computation/buildCreatureComputation';
+import computeCreatureComputation from './computation/computeCreatureComputation';
+import writeAlteredProperties from './computation/writeComputation/writeAlteredProperties';
+import writeScope from './computation/writeComputation/writeScope';
+import writeErrorsAndPropCount from './computation/writeComputation/writeErrorsAndPropCount';
 
-export default function computeCreature(creatureId){
+export default async function computeCreature(creatureId) {
   if (Meteor.isClient) return;
   // console.log('compute ' + creatureId);
   const computation = buildCreatureComputation(creatureId);
-  computeComputation(computation, creatureId);
+  await computeComputation(computation, creatureId);
 }
 
-function computeComputation(computation, creatureId) {
+async function computeComputation(computation, creatureId) {
   try {
-    computeCreatureComputation(computation);
-    writeAlteredProperties(computation);
-    writeScope(creatureId, computation);
-  } catch (e){
+    await computeCreatureComputation(computation);
+    const writePromise = writeAlteredProperties(computation);
+    const scopeWritePromise = writeScope(creatureId, computation);
+    await Promise.all([writePromise, scopeWritePromise]);
+  } catch (e) {
     const errorText = e.reason || e.message || e.toString();
     computation.errors.push({
       type: 'crash',
@@ -30,8 +31,20 @@ function computeComputation(computation, creatureId) {
       logError.location = e.stack.split('\n')[1];
     }
     console.error(logError);
-    throw e;
   } finally {
-    writeErrors(creatureId, computation.errors);
+    checkPropertyCount(computation)
+    writeErrorsAndPropCount(creatureId, computation.errors, computation.props.length);
   }
+}
+
+const MAX_PROPS = 1000;
+function checkPropertyCount(computation) {
+  const count = computation.props.length;
+  if (count <= MAX_PROPS) return;
+  computation.errors.push({
+    type: 'warning',
+    details: {
+      error: `This character sheet has too many properties and may perform poorly ( ${count} / ${MAX_PROPS} )`
+    },
+  });
 }

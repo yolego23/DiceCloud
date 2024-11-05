@@ -1,12 +1,14 @@
-import _variable from './computeByType/computeVariable.js';
-import action from './computeByType/computeAction.js';
-import attribute from './computeByType/computeAttribute.js';
-import skill from './computeByType/computeSkill.js';
-import pointBuy from './computeByType/computePointBuy.js';
-import propertySlot from './computeByType/computeSlot.js';
-import container from './computeByType/computeContainer.js';
-import spellList from './computeByType/computeSpellList.js';
-import _calculation from './computeByType/computeCalculation.js';
+import _variable from './computeByType/computeVariable';
+import action from './computeByType/computeAction';
+import attribute from './computeByType/computeAttribute';
+import skill from './computeByType/computeSkill';
+import pointBuy from './computeByType/computePointBuy';
+import propertySlot from './computeByType/computeSlot';
+import container from './computeByType/computeContainer';
+import spellList from './computeByType/computeSpellList';
+import toggle from './computeByType/computeToggle';
+import trigger from './computeByType/computeTrigger';
+import _calculation from './computeByType/computeCalculation';
 
 export default Object.freeze({
   _variable,
@@ -19,4 +21,6 @@ export default Object.freeze({
   propertySlot,
   spell: action,
   spellList,
+  toggle,
+  trigger,
 });

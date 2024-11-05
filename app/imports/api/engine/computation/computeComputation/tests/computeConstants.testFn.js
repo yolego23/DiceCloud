@@ -1,11 +1,12 @@
-import { buildComputationFromProps } from '/imports/api/engine/computation/buildCreatureComputation.js';
+import { buildComputationFromProps } from '/imports/api/engine/computation/buildCreatureComputation';
 import { assert } from 'chai';
-import computeCreatureComputation from '../../computeCreatureComputation.js';
-import clean from '../../utility/cleanProp.testFn.js';
+import computeCreatureComputation from '../../computeCreatureComputation';
+import clean from '../../utility/cleanProp.testFn';
+import { applyNestedSetProperties } from '/imports/api/parenting/parentingFunctions';
 
-export default function(){
+export default async function () {
   const computation = buildComputationFromProps(testProperties);
-  computeCreatureComputation(computation);
+  await computeCreatureComputation(computation);
   const prop = id => computation.propsById[id];
   assert.equal(prop('attId').value, 6);
 }
@@ -23,6 +24,7 @@ var testProperties = [
     baseValue: {
       calculation: 'arrayConstant[3]',
     },
-    ancestors: [{id: 'charId'}],
   }),
 ];
+
+applyNestedSetProperties(testProperties);

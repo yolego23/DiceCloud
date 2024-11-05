@@ -1,5 +1,5 @@
-import LibraryCollections from '/imports/api/library/LibraryCollections.js';
-import Creatures from '/imports/api/creature/creatures/Creatures.js';
+import LibraryCollections from '/imports/api/library/LibraryCollections';
+import Creatures from '/imports/api/creature/creatures/Creatures';
 import getUserLibraryIds from './getUserLibraryIds';
 import { intersection, union } from 'lodash';
 
@@ -17,14 +17,14 @@ export default function getCreatureLibraryIds(creature, userId) {
         allowedLibraryCollections: 1,
       }
     });
-    if (!creature) return [];
+    if (!creature) return userLibIds;
   }
 
   // If the creature does not restrict the libraries, let it use them all
   if (!creature.allowedLibraryCollections && !creature.allowedLibraries) {
     return userLibIds;
   }
-  
+
   // Get the ids of the libraries that the creature allows
   const allowedCollections = creature.allowedLibraryCollections || [];
   let creatureLibIds = creature.allowedLibraries || [];

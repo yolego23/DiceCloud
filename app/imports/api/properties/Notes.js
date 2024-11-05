@@ -1,6 +1,6 @@
 import SimpleSchema from 'simpl-schema';
-import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS.js';
-import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema.js';
+import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
+import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
 
 let NoteSchema = createPropertySchema({
   name: {
@@ -14,6 +14,11 @@ let NoteSchema = createPropertySchema({
   },
   description: {
     type: 'inlineCalculationFieldToCompute',
+    optional: true,
+  },
+  // Prevent the property from showing up in the log
+  silent: {
+    type: Boolean,
     optional: true,
   },
 });

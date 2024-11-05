@@ -1,18 +1,18 @@
 import SimpleSchema from 'simpl-schema';
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
-import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties.js';
-import { assertEditPermission } from '/imports/api/sharing/sharingPermissions.js';
-import getRootCreatureAncestor from '/imports/api/creature/creatureProperties/getRootCreatureAncestor.js';
+import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
+import { assertEditPermission } from '/imports/api/sharing/sharingPermissions';
+import getRootCreatureAncestor from '/imports/api/creature/creatureProperties/getRootCreatureAncestor';
 import {
-  setLineageOfDocs,
+  getFilter,
   renewDocIds
-} from '/imports/api/parenting/parenting.js';
-import { reorderDocs } from '/imports/api/parenting/order.js';
+} from '/imports/api/parenting/parentingFunctions';
+import { rebuildNestedSets } from '/imports/api/parenting/parentingFunctions';
 var snackbar;
 if (Meteor.isClient) {
   snackbar = require(
-    '/imports/ui/components/snackbars/SnackbarQueue.js'
+    '/imports/client/ui/components/snackbars/SnackbarQueue'
   ).snackbar
 }
 
@@ -33,22 +33,29 @@ const duplicateProperty = new ValidatedMethod({
   },
   run({ _id }) {
     let property = CreatureProperties.findOne(_id);
-    let creature = getRootCreatureAncestor(property);
+    if (!property) throw new Meteor.Error('not-found', 'The source property was not found');
+
+    const creature = getRootCreatureAncestor(property);
 
     assertEditPermission(creature, this.userId);
 
     // Renew the doc ID
-    let randomSrc = DDP.randomStream('duplicateProperty');
-    let propertyId = randomSrc.id();
+    const randomSrc = DDP.randomStream('duplicateProperty');
+    const propertyId = randomSrc.id();
     property._id = propertyId;
 
+    // Change the variableName so it isn't immediately overridden
+    if (property.variableName) {
+      property.variableName += 'Copy'
+    }
+
     // Get all the descendants
-    let nodes = CreatureProperties.find({
-      'ancestors.id': _id,
+    const nodes = CreatureProperties.find({
+      ...getFilter.descendants(property),
       removed: { $ne: true },
     }, {
       limit: DUPLICATE_CHILDREN_LIMIT + 1,
-      sort: { order: 1 },
+      sort: { left: 1 },
     }).fetch();
 
     // Alert the user if the limit was hit
@@ -61,33 +68,28 @@ const duplicateProperty = new ValidatedMethod({
       }
     }
 
-    // re-map all the ancestors
-    setLineageOfDocs({
-      docArray: nodes,
-      newAncestry: [
-        ...property.ancestors,
-        { id: propertyId, collection: 'creatureProperties' }
-      ],
-      oldParent: { id: _id, collection: 'creatureProperties' },
+    // Give the docs new IDs without breaking internal references
+    const allNodes = [property, ...nodes];
+    renewDocIds({
+      docArray: allNodes,
+      idMap: {
+        [_id]: propertyId,
+        [propertyId]: propertyId,
+      },
     });
 
-    // Give the docs new IDs without breaking internal references
-    renewDocIds({ docArray: nodes });
-
     // Order the root node
-    property.order += 0.5;
+    property.left = Number.MAX_SAFE_INTEGER - 1;
+    property.right = Number.MAX_SAFE_INTEGER;
 
     // Mark the sheet as needing recompute
     property.dirty = true;
 
     // Insert the properties
-    CreatureProperties.batchInsert([property, ...nodes]);
+    CreatureProperties.batchInsert(allNodes);
 
     // Tree structure changed by inserts, reorder the tree
-    reorderDocs({
-      collection: CreatureProperties,
-      ancestorId: property.ancestors[0].id,
-    });
+    rebuildNestedSets(CreatureProperties, property.root.id);
 
     return propertyId;
   },

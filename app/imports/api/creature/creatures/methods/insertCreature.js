@@ -1,21 +1,21 @@
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
-import simpleSchemaMixin from '/imports/api/creature/mixins/simpleSchemaMixin.js';
-import Creatures, { CreatureSchema } from '/imports/api/creature/creatures/Creatures.js';
-import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties.js';
-import defaultCharacterProperties from '/imports/api/creature/creatures/defaultCharacterProperties.js';
-import insertPropertyFromLibraryNode from '/imports/api/creature/creatureProperties/methods/insertPropertyFromLibraryNode.js';
-import assertHasCharactersSlots from '/imports/api/creature/creatures/methods/assertHasCharacterSlots.js';
-import getSlotFillFilter from '/imports/api/creature/creatureProperties/methods/getSlotFillFilter.js';
-import getCreatureLibraryIds from '/imports/api/library/getCreatureLibraryIds.js';
-import LibraryNodes from '/imports/api/library/LibraryNodes.js';
-import { insertExperienceForCreature } from '/imports/api/creature/experience/Experiences.js';
+import simpleSchemaMixin from '/imports/api/creature/mixins/simpleSchemaMixin';
+import Creatures, { CreatureSchema } from '/imports/api/creature/creatures/Creatures';
+import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
+import defaultCharacterProperties from '/imports/api/creature/creatures/defaultCharacterProperties';
+import insertPropertyFromLibraryNode from '/imports/api/creature/creatureProperties/methods/insertPropertyFromLibraryNode';
+import assertHasCharactersSlots from '/imports/api/creature/creatures/methods/assertHasCharacterSlots';
+import getSlotFillFilter from '/imports/api/creature/creatureProperties/methods/getSlotFillFilter';
+import getCreatureLibraryIds from '/imports/api/library/getCreatureLibraryIds';
+import LibraryNodes from '/imports/api/library/LibraryNodes';
+import { insertExperienceForCreature } from '/imports/api/creature/experience/Experiences';
 import SimpleSchema from 'simpl-schema';
 
 const insertCreature = new ValidatedMethod({
   name: 'creatures.insertCreature',
   mixins: [RateLimiterMixin, simpleSchemaMixin],
-  schema: CreatureSchema.pick(
+  validate: CreatureSchema.pick(
     'name',
     'gender',
     'alignment',
@@ -26,7 +26,7 @@ const insertCreature = new ValidatedMethod({
       type: SimpleSchema.Integer,
       min: 0,
     },
-  }),
+  }).validator(),
   rateLimit: {
     numRequests: 5,
     timeInterval: 5000,
@@ -48,8 +48,13 @@ const insertCreature = new ValidatedMethod({
       name,
       gender,
       alignment,
+      type: 'pc',
       allowedLibraries,
       allowedLibraryCollections,
+      settings: {},
+      readers: [],
+      writers: [],
+      public: false,
     });
 
     // Insert experience to get character to starting level
@@ -61,7 +66,6 @@ const insertCreature = new ValidatedMethod({
           creatureId
         },
         creatureId,
-        userId,
       });
     }
 
@@ -96,7 +100,6 @@ function insertDefaultRuleset(creatureId, baseId, userId, slot) {
     insertPropertyFromLibraryNode.call({
       nodeIds: [ruleset._id],
       parentRef: { id: baseId, collection: 'creatureProperties' },
-      order: 0.5,
     });
   }
 }

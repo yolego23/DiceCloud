@@ -1,22 +1,15 @@
 import { has } from 'lodash';
-import evaluateCalculation from '../../utility/evaluateCalculation.js';
+import { resolveCalculationNode } from '/imports/api/engine/computation/computeComputation/computeByType/computeCalculation';
 
-export default function computePointBuy(computation, node) {
+export default async function computePointBuy(computation, node) {
   const prop = node.data;
-  const tableMin = prop.min?.value || null;
-  const tableMax = prop.max?.value || null;
+  const min = has(prop, 'min.value') ? prop.min.value : null;
+  const max = has(prop, 'max.value') ? prop.max.value : null;
   prop.spent = 0;
-  prop.values?.forEach(row => {
-    // Clean up added properties
-    // delete row.tableId;
-    // delete row.tableName;
-    // delete row.type;
-
+  for (const row of prop.values || []) {
     row.spent = 0;
     if (row.value === undefined) return;
-    const min = has(row, 'min.value') ? row.min.value : tableMin;
-    const max = has(row, 'max.value') ? row.max.value : tableMax;
-    const costFunction = EJSON.clone(row.cost || prop.cost);
+    const costFunction = EJSON.clone(prop.cost);
     if (costFunction) costFunction.parseLevel = 'reduce';
 
     // Check min and max
@@ -28,7 +21,9 @@ export default function computePointBuy(computation, node) {
     }
     // Evaluate the cost function
     if (!costFunction) return;
-    evaluateCalculation(costFunction, { ...computation.scope, value: row.value });
+    await resolveCalculationNode(costFunction, costFunction.parseNode, {
+      ...computation.scope, value: row.value
+    });
     // Write calculation errors
     costFunction.errors?.forEach(error => {
       if (error?.message) {
@@ -41,7 +36,7 @@ export default function computePointBuy(computation, node) {
       row.spent = costFunction.value;
       prop.spent += costFunction.value;
     }
-  });
+  }
   prop.pointsLeft = (prop.total?.value || 0) - (prop.spent || 0);
   if (prop.spent > prop.total?.value) {
     prop.errors = prop.errors || [];

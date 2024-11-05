@@ -1,25 +1,25 @@
 import SimpleSchema from 'simpl-schema';
-import { union } from 'lodash';
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
-import { updateParent } from '/imports/api/parenting/parenting.js';
-import { reorderDocs, safeUpdateDocOrder } from '/imports/api/parenting/order.js';
-import { RefSchema } from '/imports/api/parenting/ChildSchema.js';
-import { assertDocEditPermission } from '/imports/api/sharing/sharingPermissions.js';
-import fetchDocByRef from '/imports/api/parenting/fetchDocByRef.js';
-import getCollectionByName from '/imports/api/parenting/getCollectionByName.js';
-import Creatures from '/imports/api/creature/creatures/Creatures.js';
+import { RefSchema } from '/imports/api/parenting/ChildSchema';
+import { assertDocEditPermission, assertEditPermission } from '/imports/api/sharing/sharingPermissions.js';
+import { compact } from 'lodash';
+import Creatures from '/imports/api/creature/creatures/Creatures';
+import { fetchDocByRefAsync, getCollectionByName, moveDocBetweenRoots, moveDocWithinRoot } from '/imports/api/parenting/parentingFunctions';
 
-const organizeDoc = new ValidatedMethod({
-  name: 'organize.organizeDoc',
+const moveBetweenRoots = new ValidatedMethod({
+  name: 'organize.moveDocBetweenRoots',
   validate: new SimpleSchema({
     docRef: RefSchema,
-    parentRef: RefSchema,
-    order: {
-      type: Number,
-      // Should end in 0.5 to place it reliably between two existing documents
+    newPosition: {
+      type: Number, // Must end in .5
     },
+    newRootRef: RefSchema,
     skipRecompute: {
+      type: Boolean,
+      optional: true,
+    },
+    skipClient: {
       type: Boolean,
       optional: true,
     },
@@ -29,37 +29,32 @@ const organizeDoc = new ValidatedMethod({
     numRequests: 5,
     timeInterval: 5000,
   },
-  run({docRef, parentRef, order, skipRecompute}) {
-    let doc = fetchDocByRef(docRef);
+  async run({ docRef, newPosition, newRootRef, skipRecompute, skipClient }) {
+    if (skipClient && this.isSimulation) {
+      return;
+    }
+    let doc = await fetchDocByRefAsync(docRef);
     let collection = getCollectionByName(docRef.collection);
     // The user must be able to edit both the doc and its parent to move it
     // successfully
     assertDocEditPermission(doc, this.userId);
-    let parent = fetchDocByRef(parentRef);
-    assertDocEditPermission(parent, this.userId);
+    const newRoot = await fetchDocByRefAsync(newRootRef);
+    assertEditPermission(newRoot, this.userId);
 
-    // Change the doc's parent
-    updateParent({docRef, parentRef});
-    // Change the doc's order to be a half step ahead of its target location
-    collection.update(doc._id, {$set: {order}}, {selector: {type: 'any'}});
 
-    // Reorder both ancestors' documents
-    let oldAncestorId = doc.ancestors[0].id;
-    reorderDocs({collection, ancestorId: oldAncestorId});
-
-    let newAncestorId = getRootId(parent);
-    if (newAncestorId !== oldAncestorId){
-      reorderDocs({collection, ancestorId: newAncestorId});
-    }
+    // Move the doc
+    await moveDocBetweenRoots(doc, collection, newRootRef, newPosition);
 
     // Figure out which creatures need to be recalculated after this move
-    let docCreatures = getCreatureAncestors(doc);
-    let parentCreatures = getCreatureAncestors(parent);
-    if (!skipRecompute){
-      let creaturesToRecompute = union(docCreatures, parentCreatures);
-      // Mark the creatures for recompute
-      Creatures.update({
-        _id: { $in: creaturesToRecompute }
+    const creatureIdsToRecalculate = compact([
+      getCreatureAncestorId(doc),
+      getCreatureAncestorId(newRoot),
+    ]);
+
+    // Mark the creatures for recompute
+    if (!skipRecompute && creatureIdsToRecalculate.length) {
+      Creatures.updateAsync({
+        _id: { $in: creatureIdsToRecalculate },
       }, {
         $set: { dirty: true },
       });
@@ -67,13 +62,20 @@ const organizeDoc = new ValidatedMethod({
   },
 });
 
-const reorderDoc = new ValidatedMethod({
-  name: 'organize.reorderDoc',
+const moveWithinRoot = new ValidatedMethod({
+  name: 'organize.moveDocWithinRoot',
   validate: new SimpleSchema({
     docRef: RefSchema,
-    order: {
-      type: Number,
-      // Should end in 0.5 to place it reliably between two existing documents
+    newPosition: {
+      type: Number, // Must end in .5
+    },
+    skipRecompute: {
+      type: Boolean,
+      optional: true,
+    },
+    skipClient: {
+      type: Boolean,
+      optional: true,
     },
   }).validator(),
   mixins: [RateLimiterMixin],
@@ -81,15 +83,26 @@ const reorderDoc = new ValidatedMethod({
     numRequests: 5,
     timeInterval: 5000,
   },
-  run({docRef, order}) {
-    let doc = fetchDocByRef(docRef);
+  async run({ docRef, newPosition, skipRecompute, skipClient }) {
+    if (skipClient && this.isSimulation) {
+      return;
+    }
+    let doc = await fetchDocByRefAsync(docRef);
+    let collection = getCollectionByName(docRef.collection);
+
+    // The user must be able to edit the doc
     assertDocEditPermission(doc, this.userId);
-    safeUpdateDocOrder({docRef, order});
-    // Recompute the affected creatures
-    const ancestors = getCreatureAncestors(doc);
-    if (ancestors.length) {
-      Creatures.update({
-        _id: { $in: ancestors }
+
+    // Move the doc
+    await moveDocWithinRoot(doc, collection, newPosition);
+
+    // Figure out which creature needs to be recalculated after this move
+    const creatureIdToRecalculate = getCreatureAncestorId(doc);
+
+    // Mark the creatures for recompute
+    if (!skipRecompute && creatureIdToRecalculate) {
+      Creatures.updateAsync({
+        _id: creatureIdToRecalculate,
       }, {
         $set: { dirty: true },
       });
@@ -97,27 +110,13 @@ const reorderDoc = new ValidatedMethod({
   },
 });
 
-function getRootId(doc){
-  if (doc.ancestors && doc.ancestors.length && doc.ancestors[0]){
-    return doc.ancestors[0].id;
-  } else {
+function getCreatureAncestorId(doc) {
+  if (doc.type === 'pc' || doc.type === 'npc' || doc.type === 'monster') {
     return doc._id;
   }
+  if (doc?.root?.collection === 'creatures') {
+    return doc.root.id;
+  }
 }
 
-function getCreatureAncestors(doc){
-  let ids = [];
-  if(doc.type === 'pc' || doc.type === 'npc' || doc.type === 'monster'){
-    ids.push(doc._id);
-  }
-  if (doc.ancestors){
-    doc.ancestors.forEach(ancestorRef => {
-      if (ancestorRef.collection === 'creatures'){
-        ids.push(ancestorRef.id);
-      }
-    });
-  }
-  return ids;
-}
-
-export { organizeDoc, reorderDoc };
+export { moveBetweenRoots, moveWithinRoot };

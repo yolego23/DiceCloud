@@ -1,6 +1,6 @@
 import { findLast } from 'lodash';
-import getEntitledCents from '/imports/api/users/patreon/getEntitledCents.js';
-import Invites from '/imports/api/users/Invites.js';
+import getEntitledCents from '/imports/api/users/patreon/getEntitledCents';
+import Invites from '/imports/api/users/Invites';
 const patreonDisabled = !!Meteor.settings?.public?.disablePatreon;
 
 const TIERS = Object.freeze([
@@ -9,6 +9,7 @@ const TIERS = Object.freeze([
     minimumEntitledCents: 0,
     invites: 0,
     characterSlots: 5,
+    tabletopSlots: 0,
     fileStorage: 50,
     paidBenefits: false,
   }, {
@@ -16,6 +17,7 @@ const TIERS = Object.freeze([
     minimumEntitledCents: 100,
     invites: 0,
     characterSlots: 5,
+    tabletopSlots: 0,
     fileStorage: 50,
     paidBenefits: false,
   }, {
@@ -23,6 +25,7 @@ const TIERS = Object.freeze([
     minimumEntitledCents: 300,
     invites: 0,
     characterSlots: 5,
+    tabletopSlots: 0,
     fileStorage: 50,
     paidBenefits: false,
   }, {
@@ -31,6 +34,7 @@ const TIERS = Object.freeze([
     minimumEntitledCents: 500,
     invites: 0,
     characterSlots: 20,
+    tabletopSlots: 4,
     fileStorage: 200,
     paidBenefits: true,
   }, {
@@ -39,6 +43,7 @@ const TIERS = Object.freeze([
     minimumEntitledCents: 1000,
     invites: 2,
     characterSlots: 50,
+    tabletopSlots: 10,
     fileStorage: 500,
     paidBenefits: true,
   }, {
@@ -47,6 +52,7 @@ const TIERS = Object.freeze([
     minimumEntitledCents: 2000,
     invites: 5,
     characterSlots: 120,
+    tabletopSlots: 24,
     fileStorage: 1000,
     paidBenefits: true,
   }, {
@@ -55,6 +61,7 @@ const TIERS = Object.freeze([
     minimumEntitledCents: 5000,
     invites: 15,
     characterSlots: -1, // Unlimited characters
+    tabletopSlots: -1, // Unlimited tabletops
     fileStorage: 2000,
     paidBenefits: true,
   },
@@ -66,6 +73,7 @@ const GUEST_TIER = Object.freeze({
   guest: true,
   invites: 0,
   characterSlots: 20,
+  tabletopSlots: 4,
   fileStorage: 200,
   paidBenefits: true,
 });
@@ -76,18 +84,19 @@ const PATREON_DISABLED_TIER = Object.freeze({
   name: 'Outlander',
   invites: 0,
   characterSlots: -1, // Can have infinitely many characters
+  tabletopSlots: -1, // Infinite tabletops
   fileStorage: 1000000, // 1TB file storage
   paidBenefits: true,
 });
 
-export function getTierByEntitledCents(entitledCents = 0){
+export function getTierByEntitledCents(entitledCents = 0) {
   if (patreonDisabled) return PATREON_DISABLED_TIER;
-  return findLast(TIERS, tier => entitledCents >= tier.minimumEntitledCents);
+  return findLast(TIERS, tier => entitledCents >= tier.minimumEntitledCents) || TIERS[0];
 }
 
-export function getUserTier(user){
+export function getUserTier(user) {
   if (!user) throw 'user must be provided';
-  if (typeof user === 'string'){
+  if (typeof user === 'string') {
     user = Meteor.users.findOne(user, {
       fields: {
         'services.patreon': 1,
@@ -99,19 +108,19 @@ export function getUserTier(user){
   const entitledCents = getEntitledCents(user);
   const tier = getTierByEntitledCents(entitledCents);
   if (tier.paidBenefits) return tier;
-  let invite = Invites.findOne({invitee: user._id, isFunded: true});
-  if (invite){
+  let invite = Invites.findOne({ invitee: user._id, isFunded: true });
+  if (invite) {
     return GUEST_TIER;
   } else {
     return tier;
   }
 }
 
-export function assertUserHasPaidBenefits(user){
+export function assertUserHasPaidBenefits(user) {
   let tier = getUserTier(user);
-  if (!tier.paidBenefits){
+  if (!tier.paidBenefits) {
     throw new Meteor.Error('no paid benefits',
-    `The ${tier.name} tier does not have the required benefits`);
+      `The ${tier.name} tier does not have the required benefits`);
   }
 }
 

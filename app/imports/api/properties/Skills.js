@@ -1,7 +1,8 @@
 import SimpleSchema from 'simpl-schema';
-import VARIABLE_NAME_REGEX from '/imports/constants/VARIABLE_NAME_REGEX.js';
-import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS.js';
-import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema.js';
+import VARIABLE_NAME_REGEX from '/imports/constants/VARIABLE_NAME_REGEX';
+import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
+import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
+import TagTargetingSchema from '/imports/api/properties/subSchemas/TagTargetingSchema';
 
 /*
  * Skills are anything that results in a modifier to be added to a D20
@@ -59,7 +60,8 @@ let SkillSchema = createPropertySchema({
     type: 'inlineCalculationFieldToCompute',
     optional: true,
   },
-});
+  // Skills can apply their value to other calculations as a proficiency using tag targeting
+}).extend(TagTargetingSchema);
 
 let ComputedOnlySkillSchema = createPropertySchema({
   // Computed value of skill to be added to skill rolls
@@ -132,18 +134,43 @@ let ComputedOnlySkillSchema = createPropertySchema({
     removeBeforeCompute: true,
   },
   // A list of effect ids targeting this skill
-  effects: {
+  'effectIds': {
     type: Array,
     optional: true,
     removeBeforeCompute: true,
   },
-  'effects.$': {
+  'effectIds.$': {
+    type: String,
+  },
+  'proficiencyIds': {
+    type: Array,
+    optional: true,
+    removeBeforeCompute: true,
+  },
+  'proficiencyIds.$': {
+    type: String,
+  },
+  'definitions': {
+    type: Array,
+    optional: true,
+    removeBeforeCompute: true,
+  },
+  'definitions.$': {
     type: Object,
-    blackbox: true,
+  },
+  'definitions.$._id': {
+    type: String,
+  },
+  'definitions.$.type': {
+    type: String,
+  },
+  'definitions.$.row': {
+    type: Number,
+    optional: true,
   },
 })
 
-const ComputedSkillSchema = new SimpleSchema()
+const ComputedSkillSchema = new SimpleSchema({})
   .extend(ComputedOnlySkillSchema)
   .extend(SkillSchema);
 

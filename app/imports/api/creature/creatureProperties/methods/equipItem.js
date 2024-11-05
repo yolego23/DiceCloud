@@ -1,11 +1,11 @@
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
-import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties.js';
+import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
-import { assertEditPermission } from '/imports/api/sharing/sharingPermissions.js';
-import { organizeDoc } from '/imports/api/parenting/organizeMethods.js';
-import getRootCreatureAncestor from '/imports/api/creature/creatureProperties/getRootCreatureAncestor.js';
-import BUILT_IN_TAGS from '/imports/constants/BUILT_IN_TAGS.js';
-import getParentRefByTag from '/imports/api/creature/creatureProperties/methods/getParentRefByTag.js';
+import { assertEditPermission } from '/imports/api/sharing/sharingPermissions';
+import { organizeDoc } from '/imports/api/parenting/organizeMethods';
+import getRootCreatureAncestor from '/imports/api/creature/creatureProperties/getRootCreatureAncestor';
+import BUILT_IN_TAGS from '/imports/constants/BUILT_IN_TAGS';
+import getParentRefByTag from '/imports/api/creature/creatureProperties/methods/getParentRefByTag';
 
 // Equipping or unequipping an item will also change its parent
 const equipItem = new ValidatedMethod({
@@ -36,7 +36,7 @@ const equipItem = new ValidatedMethod({
     let parentRef = getParentRefByTag(creature._id, tag);
     if (!parentRef) parentRef = { id: creature._id, collection: 'creatures' };
 
-    organizeDoc.call({
+    organizeDoc.callAsync({
       docRef: {
         id: _id,
         collection: 'creatureProperties',

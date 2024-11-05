@@ -1,10 +1,10 @@
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import SimpleSchema from 'simpl-schema';
-import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties.js';
-import { assertEditPermission } from '/imports/api/sharing/sharingPermissions.js';
-import { restore } from '/imports/api/parenting/softRemove.js';
-import getRootCreatureAncestor from '/imports/api/creature/creatureProperties/getRootCreatureAncestor.js';
+import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
+import { assertEditPermission } from '/imports/api/sharing/sharingPermissions';
+import { restore } from '/imports/api/parenting/softRemove';
+import getRootCreatureAncestor from '/imports/api/creature/creatureProperties/getRootCreatureAncestor';
 
 const restoreProperty = new ValidatedMethod({
   name: 'creatureProperties.restore',
@@ -23,13 +23,7 @@ const restoreProperty = new ValidatedMethod({
     assertEditPermission(rootCreature, this.userId);
 
     // Do work
-    restore({
-      _id,
-      collection: CreatureProperties,
-      extraUpdates: {
-        $set: { dirty: true }
-      },
-    });
+    restore(CreatureProperties, property, { $set: { dirty: true } });
   }
 });
 

@@ -3,6 +3,10 @@
 .demeteorized
 .cache
 .vscode
+.coverage
+.nyc_output
+.DS_Store
+fileStorage
 settings.json
 public/components
 public/_imports.html

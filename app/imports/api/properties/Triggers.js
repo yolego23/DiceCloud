@@ -1,6 +1,6 @@
 import SimpleSchema from 'simpl-schema';
-import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema.js';
-import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS.js';
+import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
+import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 
 const eventOptions = {
   doActionProperty: 'Do action',
@@ -18,10 +18,12 @@ const eventOptions = {
 const timingOptions = {
   before: 'Before',
   after: 'After',
+  afterChildren: 'After Children',
 }
 
 const actionPropertyTypeOptions = {
   action: 'Action',
+  ammo: 'Ammo used',
   adjustment: 'Attribute damage',
   branch: 'Branch',
   buff: 'Buff',
@@ -91,7 +93,7 @@ let TriggerSchema = createPropertySchema({
   'extraTags.$._id': {
     type: String,
     regEx: SimpleSchema.RegEx.Id,
-    autoValue(){
+    autoValue() {
       if (!this.isSet) return Random.id();
     }
   },
@@ -132,7 +134,7 @@ const ComputedOnlyTriggerSchema = createPropertySchema({
   },
 });
 
-const ComputedTriggerSchema = new SimpleSchema()
+const ComputedTriggerSchema = new SimpleSchema({})
   .extend(TriggerSchema)
   .extend(ComputedOnlyTriggerSchema);
 

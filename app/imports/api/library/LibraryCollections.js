@@ -1,11 +1,11 @@
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import SimpleSchema from 'simpl-schema';
-import SharingSchema from '/imports/api/sharing/SharingSchema.js';
-import simpleSchemaMixin from '/imports/api/creature/mixins/simpleSchemaMixin.js';
-import { assertEditPermission, assertOwnership } from '/imports/api/sharing/sharingPermissions.js';
-import { getUserTier } from '/imports/api/users/patreon/tiers.js'
-import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS.js';
+import SharingSchema from '/imports/api/sharing/SharingSchema';
+import simpleSchemaMixin from '/imports/api/creature/mixins/simpleSchemaMixin';
+import { assertEditPermission, assertOwnership } from '/imports/api/sharing/sharingPermissions';
+import { getUserTier } from '/imports/api/users/patreon/tiers'
+import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 
 /**
  * LibraryCollections are groups of libraries that are subscribed together at once
@@ -32,6 +32,16 @@ const LibraryCollectionSchema = new SimpleSchema({
     type: String,
     regEx: SimpleSchema.RegEx.Id,
   },
+  showInMarket: {
+    index: 1,
+    type: Boolean,
+    optional: true,
+  },
+  subscriberCount: {
+    index: 1,
+    type: Number,
+    optional: true,
+  },
 });
 
 LibraryCollectionSchema.extend(SharingSchema);
@@ -48,12 +58,12 @@ const insertLibraryCollection = new ValidatedMethod({
   run(libraryCollection) {
     if (!this.userId) {
       throw new Meteor.Error('LibraryCollections.methods.insert.denied',
-      'You need to be logged in to insert a library');
+        'You need to be logged in to insert a library');
     }
     let tier = getUserTier(this.userId);
-    if (!tier.paidBenefits){
+    if (!tier.paidBenefits) {
       throw new Meteor.Error('LibraryCollections.methods.insert.denied',
-      `The ${tier.name} tier does not allow you to insert a library collection`);
+        `The ${tier.name} tier does not allow you to insert a library collection`);
     }
     libraryCollection.owner = this.userId;
     return LibraryCollections.insert(libraryCollection);
@@ -72,7 +82,7 @@ const updateLibraryCollection = new ValidatedMethod({
     },
     update: {
       type: LibraryCollectionSchema
-        .pick('name', 'description', 'libraries')
+        .pick('name', 'description', 'libraries', 'showInMarket')
         .extend({ //make libraries optional
           libraries: {
             optional: true,
@@ -85,7 +95,7 @@ const updateLibraryCollection = new ValidatedMethod({
     numRequests: 5,
     timeInterval: 5000,
   },
-  run({_id, update}){
+  run({ _id, update }) {
     const libraryCollection = LibraryCollections.findOne(_id, {
       fields: {
         owner: 1,
@@ -93,7 +103,7 @@ const updateLibraryCollection = new ValidatedMethod({
       }
     });
     assertEditPermission(libraryCollection, this.userId);
-    return LibraryCollections.update(_id, {$set: update});
+    return LibraryCollections.update(_id, { $set: update });
   },
 });
 
@@ -110,7 +120,7 @@ const removeLibraryCollection = new ValidatedMethod({
     numRequests: 5,
     timeInterval: 5000,
   },
-  run({_id}){
+  run({ _id }) {
     const libraryCollection = LibraryCollections.findOne(_id, {
       fields: {
         owner: 1,

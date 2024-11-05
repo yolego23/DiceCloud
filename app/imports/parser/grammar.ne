@@ -1,17 +1,17 @@
 @preprocessor esmodule
 @{%
-  import node from './parseTree/_index.js';
+  import node from '/imports/parser/parseTree/_index';
 
   import moo from 'moo';
 
   const lexer = moo.compile({
     number: /[0-9]+(?:\.[0-9]+)?/,
     string: {
-      match: /'.*?'|".*?"/,
-      value: s => s.slice(1, -1),
+      match: /'[^']*'|"[^"]*"/,
+      value: s => s.slice(1, -1).replace('\\n', '\n'),
     },
     name: {
-      match: /[a-zA-Z_#$]*[a-ce-zA-Z_#$][a-zA-Z0-9_#$]*/,
+      match: /[~#]?[a-zA-Z]*[a-ce-zA-Z][a-zA-Z0-9_]*/,
       type: moo.keywords({
         'keywords': ['true', 'false'],
       }),
@@ -125,7 +125,7 @@ arguments ->
 | "(" _ ")" {% d => [] %}
 
 indexExpression ->
-  arrayExpression "[" _ expression _ "]" {% d => node.index.create({array: d[0], index: d[3]}) %}
+  indexExpression "[" _ expression _ "]" {% d => node.index.create({array: d[0], index: d[3]}) %}
 | arrayExpression {% id %}
 
 arrayExpression ->
@@ -159,7 +159,7 @@ number ->
   %number {% d => node.constant.create({value: +d[0].value}) %}
 
 name ->
-  %name {% d => node.symbol.create({name: d[0].value}) %}
+  %name {% d => node.accessor.create({name: d[0].value}) %}
 
 string ->
   %string {% d => node.constant.create({value: d[0].value}) %}

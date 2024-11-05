@@ -1,6 +1,7 @@
 import SimpleSchema from 'simpl-schema';
-import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS.js';
-import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema.js';
+import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
+import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
+import TagTargetingSchema from '/imports/api/properties/subSchemas/TagTargetingSchema';
 
 const ToggleSchema = createPropertySchema({
   name: {
@@ -31,7 +32,12 @@ const ToggleSchema = createPropertySchema({
     type: 'fieldToCompute',
     optional: true,
   },
-});
+  // Prevent the property from showing up in the log
+  silent: {
+    type: Boolean,
+    optional: true,
+  },
+}).extend(TagTargetingSchema);
 
 const ComputedOnlyToggleSchema = createPropertySchema({
   condition: {
@@ -40,7 +46,7 @@ const ComputedOnlyToggleSchema = createPropertySchema({
   },
 });
 
-const ComputedToggleSchema = new SimpleSchema()
+const ComputedToggleSchema = new SimpleSchema({})
   .extend(ComputedOnlyToggleSchema)
   .extend(ToggleSchema);
 

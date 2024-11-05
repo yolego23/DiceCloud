@@ -1,12 +1,13 @@
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import SimpleSchema from 'simpl-schema';
-import SharingSchema from '/imports/api/sharing/SharingSchema.js';
-import simpleSchemaMixin from '/imports/api/creature/mixins/simpleSchemaMixin.js';
-import { assertEditPermission, assertOwnership } from '/imports/api/sharing/sharingPermissions.js';
-import LibraryNodes from '/imports/api/library/LibraryNodes.js';
-import { getUserTier } from '/imports/api/users/patreon/tiers.js'
-import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS.js';
+import SharingSchema from '/imports/api/sharing/SharingSchema';
+import simpleSchemaMixin from '/imports/api/creature/mixins/simpleSchemaMixin';
+import { assertEditPermission, assertOwnership } from '/imports/api/sharing/sharingPermissions';
+import LibraryNodes from '/imports/api/library/LibraryNodes';
+import { getUserTier } from '/imports/api/users/patreon/tiers'
+import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
+import { getFilter } from '/imports/api/parenting/parentingFunctions';
 
 /**
  * Libraries are trees of library nodes where each node represents a character
@@ -28,6 +29,16 @@ let LibrarySchema = new SimpleSchema({
     type: String,
     optional: true,
     max: STORAGE_LIMITS.summary,
+  },
+  showInMarket: {
+    index: 1,
+    type: Boolean,
+    optional: true,
+  },
+  subscriberCount: {
+    index: 1,
+    type: Number,
+    optional: true,
   },
 });
 
@@ -104,6 +115,29 @@ const updateLibraryDescription = new ValidatedMethod({
   },
 });
 
+const updateLibraryShowInMarket = new ValidatedMethod({
+  name: 'libraries.updateShowInMarket',
+  validate: new SimpleSchema({
+    _id: {
+      type: String,
+      regEx: SimpleSchema.RegEx.id
+    },
+    value: {
+      type: Boolean,
+    },
+  }).validator(),
+  mixins: [RateLimiterMixin],
+  rateLimit: {
+    numRequests: 5,
+    timeInterval: 5000,
+  },
+  run({ _id, value }) {
+    let library = Libraries.findOne(_id);
+    assertEditPermission(library, this.userId);
+    Libraries.update(_id, { $set: { showInMarket: value } });
+  },
+});
+
 const removeLibrary = new ValidatedMethod({
   name: 'libraries.remove',
   validate: new SimpleSchema({
@@ -127,7 +161,7 @@ const removeLibrary = new ValidatedMethod({
 
 export function removeLibaryWork(libraryId) {
   Libraries.remove(libraryId);
-  LibraryNodes.remove({ 'ancestors.id': libraryId });
+  LibraryNodes.remove(getFilter.descendantsOfRoot(libraryId));
 }
 
-export { LibrarySchema, insertLibrary, updateLibraryName, updateLibraryDescription, removeLibrary };
+export { LibrarySchema, insertLibrary, updateLibraryName, updateLibraryDescription, updateLibraryShowInMarket, removeLibrary };

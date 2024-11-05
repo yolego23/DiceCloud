@@ -1,9 +1,10 @@
 import SimpleSchema from 'simpl-schema';
-import Libraries from '/imports/api/library/Libraries.js';
-import LibraryCollections from '/imports/api/library/LibraryCollections.js';
-import LibraryNodes from '/imports/api/library/LibraryNodes.js';
-import { assertViewPermission, assertDocViewPermission } from '/imports/api/sharing/sharingPermissions.js';
+import Libraries from '/imports/api/library/Libraries';
+import LibraryCollections from '/imports/api/library/LibraryCollections';
+import LibraryNodes from '/imports/api/library/LibraryNodes';
+import { assertViewPermission, assertDocViewPermission } from '/imports/api/sharing/sharingPermissions';
 import { union } from 'lodash';
+import { getFilter } from '/imports/api/parenting/parentingFunctions';
 
 const LIBRARY_NODE_TREE_FIELDS = {
   _id: 1,
@@ -11,16 +12,28 @@ const LIBRARY_NODE_TREE_FIELDS = {
   type: 1,
   icon: 1,
   color: 1,
+  // Old tree fields
   order: 1,
   parent: 1,
   ancestors: 1,
-  tags: 1,
-  slotFillerCondition: 1,
+  // Tree fields
+  parentId: 1,
+  left: 1,
+  right: 1,
+  root: 1,
   removed: 1,
   removedAt: 1,
+  // Actions
+  actionType: 1,
   // SlotFillers
+  libraryTags: 1,
   slotQuantityFilled: 1,
   slotFillerType: 1,
+  slotFillerConditionNote: 1,
+  slotFillerCondition: 1,
+  fillSlots: 1,
+  searchable: 1,
+  slotFillImage: 1,
   // Effect
   operation: 1,
   targetTags: 1,
@@ -47,7 +60,7 @@ const LIBRARY_NODE_TREE_FIELDS = {
 }
 
 export { LIBRARY_NODE_TREE_FIELDS };
-  
+
 Meteor.publish('libraryCollection', function (libraryCollectionId) {
   this.autorun(function () {
     let userId = this.userId;
@@ -63,10 +76,10 @@ Meteor.publish('libraryCollection', function (libraryCollectionId) {
         ]
       });
       const libraryCollection = libraryCollectionCursor.fetch()[0];
-      if (!libraryCollection) return [ libraryCollectionCursor ];
+      if (!libraryCollection) return [libraryCollectionCursor];
       this.autorun(function () {
         const libraryCursor = Libraries.find({
-          _id: {$in: libraryCollection.libraries},
+          _id: { $in: libraryCollection.libraries },
           $or: [
             { owner: userId },
             { writers: userId },
@@ -76,7 +89,14 @@ Meteor.publish('libraryCollection', function (libraryCollectionId) {
         }, {
           sort: { name: 1 }
         });
-        return [ libraryCollectionCursor, libraryCursor ];
+        return [
+          libraryCollectionCursor,
+          libraryCursor,
+          Meteor.users.find(
+            libraryCollection.owner,
+            { fields: { username: 1 } }
+          ),
+        ];
       });
     });
   })
@@ -135,45 +155,97 @@ Meteor.publish('libraries', function () {
   });
 });
 
-Meteor.publish('library', function(libraryId){
+Meteor.publish('browseLibraries', function () {
+  if (!this.userId) return [];
+  return [
+    Libraries.find({
+      showInMarket: true,
+      public: true,
+    }, {
+      sort: {
+        subscriberCount: 1,
+        name: 1,
+      },
+      limit: 500,
+    }),
+    LibraryCollections.find({
+      showInMarket: true,
+      public: true,
+    }, {
+      sort: {
+        subscriberCount: 1,
+        name: 1
+      },
+      limit: 500,
+    }),
+  ];
+});
+
+Meteor.publish('library', function (libraryId) {
   if (!libraryId) return [];
-  libraryIdSchema.validate({libraryId});
-  this.autorun(function (){
+  libraryIdSchema.validate({ libraryId });
+  this.autorun(function () {
     let userId = this.userId;
     let library = Libraries.findOne(libraryId);
     try { assertViewPermission(library, userId) }
-    catch(e){
+    catch (e) {
       return this.error(e);
     }
-    return Libraries.find({
-      _id: libraryId,
-    });
+    return [
+      Libraries.find({
+        _id: libraryId,
+      }),
+      Meteor.users.find(
+        library.owner,
+        { fields: { username: 1 } }
+      ),
+    ];
   });
 });
 
 let libraryIdSchema = new SimpleSchema({
-  libraryId:{
+  libraryId: {
     type: String,
     regEx: SimpleSchema.RegEx.Id,
   },
 });
 
-Meteor.publish('libraryNodes', function(libraryId){
+const extraFieldsSchema = new SimpleSchema({
+  extraFields: {
+    type: Array,
+    optional: true,
+  },
+  'extraFields.$': {
+    type: String,
+  },
+});
+
+Meteor.publish('libraryNodes', function (libraryId, extraFields) {
   if (!libraryId) return [];
-  libraryIdSchema.validate({libraryId});
-  this.autorun(function (){
+  try {
+    libraryIdSchema.validate({ libraryId });
+    extraFieldsSchema.validate({ extraFields });
+  } catch (e) {
+    return this.error(e);
+  }
+  this.autorun(function () {
     let userId = this.userId;
     let library = Libraries.findOne(libraryId);
-    try { assertViewPermission(library, userId) }
-    catch(e){
+    try {
+      assertViewPermission(library, userId)
+    } catch (e) {
       return this.error(e);
     }
+    const fields = { ...LIBRARY_NODE_TREE_FIELDS };
+    extraFields?.forEach(field => {
+      fields[field] = 1;
+    });
     return [
       LibraryNodes.find({
-        'ancestors.id': libraryId,
+        'root.id': libraryId,
       }, {
-        sort: { order: 1 },
-        fields: LIBRARY_NODE_TREE_FIELDS,
+        sort: { left: 1 },
+        fields,
       }),
     ];
   });
@@ -191,54 +263,54 @@ Meteor.publish('libraryNode', function (libraryNodeId) {
   nodeIdSchema.validate({ libraryNodeId });
   this.autorun(function () {
     const userId = this.userId;
-    const nodeCursor = LibraryNodes.find({_id: libraryNodeId});
+    const nodeCursor = LibraryNodes.find({ _id: libraryNodeId });
     let node = nodeCursor.fetch()[0];
     try { assertDocViewPermission(node, userId) }
     catch (e) {
       return this.error(e);
     }
-    return [ nodeCursor ];
+    return [nodeCursor];
   });
 });
 
-Meteor.publish('softRemovedLibraryNodes', function(libraryId){
+Meteor.publish('softRemovedLibraryNodes', function (libraryId) {
   if (!libraryId) return [];
-  libraryIdSchema.validate({libraryId});
-  this.autorun(function (){
+  libraryIdSchema.validate({ libraryId });
+  this.autorun(function () {
     let userId = this.userId;
     let library = Libraries.findOne(libraryId);
     try { assertViewPermission(library, userId) }
-    catch(e){
+    catch (e) {
       return this.error(e);
     }
     return [
       LibraryNodes.find({
-        'ancestors.0.id': libraryId,
+        ...getFilter.descendantsOfRoot(libraryId),
         removed: true,
-        removedWith: {$exists: false},
+        removedWith: { $exists: false },
       }, {
-        sort: {order: 1},
+        sort: { left: 1 },
       }),
     ];
   });
 });
 
-Meteor.publish('descendantLibraryNodes', function(nodeId){
+Meteor.publish('descendantLibraryNodes', function (nodeId) {
   let node = LibraryNodes.findOne(nodeId);
-  let libraryId = node?.ancestors[0]?.id;
-  if (!libraryId) return [];
-  this.autorun(function (){
+  let libraryId = node?.root.id;
+  if (!libraryId || !node) return [];
+  this.autorun(function () {
     let userId = this.userId;
     let library = Libraries.findOne(libraryId);
     try { assertViewPermission(library, userId) }
-    catch(e){
+    catch (e) {
       return this.error(e);
     }
     return [
       LibraryNodes.find({
-        'ancestors.id': nodeId,
+        ...getFilter.descendants(node),
       }, {
-        sort: {order: 1},
+        sort: { left: 1 },
       }),
     ];
   });

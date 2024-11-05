@@ -1,7 +1,7 @@
 import SimpleSchema from 'simpl-schema';
-import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema.js';
-import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS.js';
-import VARIABLE_NAME_REGEX from '/imports/constants/VARIABLE_NAME_REGEX.js';
+import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
+import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
+import VARIABLE_NAME_REGEX from '/imports/constants/VARIABLE_NAME_REGEX';
 
 const DamageSchema = createPropertySchema({
   // The roll that determines how much to damage the attribute
@@ -32,6 +32,28 @@ const DamageSchema = createPropertySchema({
     type: Boolean,
     optional: true,
   },
+  // remove the entire object if there is no saving throw
+  save: {
+    type: Object,
+    optional: true,
+  },
+  // The computed DC
+  'save.dc': {
+    type: 'fieldToCompute',
+    optional: true,
+  },
+  // The variable name of save to roll
+  'save.stat': {
+    type: String,
+    optional: true,
+    max: STORAGE_LIMITS.variableName,
+  },
+  // The damage to deal on a successful save
+  'save.damageFunction': {
+    type: 'fieldToCompute',
+    optional: true,
+    parseLevel: 'compile',
+  },
 });
 
 const ComputedOnlyDamageSchema = createPropertySchema({
@@ -40,9 +62,23 @@ const ComputedOnlyDamageSchema = createPropertySchema({
     optional: true,
     parseLevel: 'compile',
   },
+  save: {
+    type: Object,
+    optional: true,
+  },
+  'save.dc': {
+    type: 'computedOnlyField',
+    parseLevel: 'compile',
+    optional: true,
+  },
+  'save.damageFunction': {
+    type: 'computedOnlyField',
+    parseLevel: 'compile',
+    optional: true,
+  },
 });
 
-const ComputedDamageSchema = new SimpleSchema()
+const ComputedDamageSchema = new SimpleSchema({})
   .extend(DamageSchema)
   .extend(ComputedOnlyDamageSchema);
 

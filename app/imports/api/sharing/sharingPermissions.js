@@ -1,5 +1,5 @@
-import { _ } from 'meteor/underscore';
-import fetchDocByRef from '/imports/api/parenting/fetchDocByRef.js';
+import { includes } from 'lodash';
+import { fetchDocByRef } from '/imports/api/parenting/parentingFunctions';
 
 function assertIdValid(userId) {
   if (!userId || typeof userId !== 'string') {
@@ -50,7 +50,7 @@ export function assertEditPermission(doc, userId) {
   // Ensure the user is authorized for this specific document
   if (
     doc.owner === userId ||
-    _.contains(doc.writers, userId)
+    includes(doc.writers, userId)
   ) {
     return true;
   } else {
@@ -82,11 +82,11 @@ export function assertCopyPermission(doc, userId) {
   // Ensure the user is authorized for this specific document
   if (
     doc.owner === userId ||
-    _.contains(doc.writers, userId)
+    includes(doc.writers, userId)
   ) {
     return true;
   } else if (
-    (_.contains(doc.readers, userId) || doc.public) &&
+    (includes(doc.readers, userId) || doc.public) &&
     doc.readersCanCopy
   ) {
     return true;
@@ -98,8 +98,8 @@ export function assertCopyPermission(doc, userId) {
 
 function getRoot(doc) {
   assertdocExists(doc);
-  if (doc.ancestors && doc.ancestors.length && doc.ancestors[0]) {
-    return fetchDocByRef(doc.ancestors[0]);
+  if (doc.root) {
+    return fetchDocByRef(doc.root);
   } else {
     return doc;
   }
@@ -134,8 +134,8 @@ export function assertViewPermission(doc, userId) {
 
   if (
     doc.owner === userId ||
-    _.contains(doc.readers, userId) ||
-    _.contains(doc.writers, userId)
+    includes(doc.readers, userId) ||
+    includes(doc.writers, userId)
   ) {
     return true;
   } else {

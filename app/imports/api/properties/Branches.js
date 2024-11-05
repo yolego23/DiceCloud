@@ -1,6 +1,6 @@
 import SimpleSchema from 'simpl-schema';
-import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS.js';
-import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema.js';
+import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
+import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
 
 let BranchSchema = createPropertySchema({
   branchType: {
@@ -22,7 +22,7 @@ let BranchSchema = createPropertySchema({
       'index',
       // if it has option children, asks to select one
       // Otherwise presents its own text with yes/no
-      //'choice',
+      'choice',
       //'option',
     ],
     defaultValue: 'if',
@@ -52,7 +52,7 @@ let ComputedOnlyBranchSchema = createPropertySchema({
   },
 });
 
-const ComputedBranchSchema = new SimpleSchema()
+const ComputedBranchSchema = new SimpleSchema({})
   .extend(BranchSchema)
   .extend(ComputedOnlyBranchSchema);
 

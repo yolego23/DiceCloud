@@ -1,8 +1,8 @@
 import SimpleSchema from 'simpl-schema';
-import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS.js';
-import VARIABLE_NAME_REGEX from '/imports/constants/VARIABLE_NAME_REGEX.js';
-import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema.js';
-import ErrorSchema from '/imports/api/properties/subSchemas/ErrorSchema.js';
+import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
+import VARIABLE_NAME_REGEX from '/imports/constants/VARIABLE_NAME_REGEX';
+import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
+import ErrorSchema from '/imports/api/properties/subSchemas/ErrorSchema';
 
 /*
  * PointBuys are reason-value attached to skills and abilities
@@ -29,7 +29,7 @@ let PointBuySchema = createPropertySchema({
   'values.$._id': {
     type: String,
     regEx: SimpleSchema.RegEx.Id,
-    autoValue(){
+    autoValue() {
       if (!this.isSet) return Random.id();
     }
   },
@@ -47,18 +47,6 @@ let PointBuySchema = createPropertySchema({
   },
   'values.$.value': {
     type: Number,
-    optional: true,
-  },
-  'values.$.min': {
-    type: 'fieldToCompute',
-    optional: true,
-  },
-  'values.$.max': {
-    type: 'fieldToCompute',
-    optional: true,
-  },
-  'values.$.cost': {
-    type: 'fieldToCompute',
     optional: true,
   },
   min: {
@@ -101,19 +89,6 @@ const ComputedOnlyPointBuySchema = createPropertySchema({
   },
   'values.$': {
     type: Object,
-  },
-  'values.$.min': {
-    type: 'computedOnlyField',
-    optional: true,
-  },
-  'values.$.max': {
-    type: 'computedOnlyField',
-    optional: true,
-  },
-  'values.$.cost': {
-    type: 'computedOnlyField',
-    optional: true,
-    parseLevel: 'compile',
   },
   'values.$.spent': {
     type: Number,

@@ -1,5 +1,5 @@
 import SimpleSchema from 'simpl-schema';
-import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS.js';
+import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 
 let ReferenceSchema = new SimpleSchema({
   ref: {
@@ -49,6 +49,10 @@ let ReferenceSchema = new SimpleSchema({
   },
   'cache.library': {
     type: Object,
+    optional: true,
+  },
+  'cache.library.id': {
+    type: String,
     optional: true,
   },
   'cache.library.name': {

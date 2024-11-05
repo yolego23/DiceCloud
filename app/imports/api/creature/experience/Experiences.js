@@ -1,9 +1,9 @@
 import SimpleSchema from 'simpl-schema';
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
-import { assertEditPermission } from '/imports/api/creature/creatures/creaturePermissions.js';
-import Creatures from '/imports/api/creature/creatures/Creatures.js';
-import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS.js';
+import { assertEditPermission } from '/imports/api/creature/creatures/creaturePermissions';
+import Creatures from '/imports/api/creature/creatures/Creatures';
+import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 
 let Experiences = new Mongo.Collection('experiences');
 
@@ -26,7 +26,7 @@ let ExperienceSchema = new SimpleSchema({
     min: 0,
     index: 1,
   },
-  // The real-world date that it occured, usually sorted by date
+  // The real-world date that it occurred, usually sorted by date
   date: {
     type: Date,
     autoValue: function () {
@@ -93,7 +93,7 @@ const insertExperience = new ValidatedMethod({
     let insertedIds = [];
     creatureIds.forEach(creatureId => {
       assertEditPermission(creatureId, userId);
-      let id = insertExperienceForCreature({ experience, creatureId, userId });
+      let id = insertExperienceForCreature({ experience, creatureId });
       insertedIds.push(id);
     });
     return insertedIds;

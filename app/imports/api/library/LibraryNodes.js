@@ -3,18 +3,20 @@ import { Mongo } from 'meteor/mongo';
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import SimpleSchema from 'simpl-schema';
-import ColorSchema from '/imports/api/properties/subSchemas/ColorSchema.js';
-import ChildSchema from '/imports/api/parenting/ChildSchema.js';
-import propertySchemasIndex from '/imports/api/properties/propertySchemasIndex.js';
-import Libraries from '/imports/api/library/Libraries.js';
-import { assertEditPermission } from '/imports/api/sharing/sharingPermissions.js';
-import { softRemove } from '/imports/api/parenting/softRemove.js';
-import SoftRemovableSchema from '/imports/api/parenting/SoftRemovableSchema.js';
-import { storedIconsSchema } from '/imports/api/icons/Icons.js';
-import '/imports/api/library/methods/index.js';
-import { updateReferenceNodeWork } from '/imports/api/library/methods/updateReferenceNode.js';
-import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS.js';
-import { restore } from '/imports/api/parenting/softRemove.js';
+import ColorSchema from '/imports/api/properties/subSchemas/ColorSchema';
+import ChildSchema, { RefSchema } from '/imports/api/parenting/ChildSchema';
+import propertySchemasIndex from '/imports/api/properties/propertySchemasIndex';
+import Libraries from '/imports/api/library/Libraries';
+import { assertEditPermission } from '/imports/api/sharing/sharingPermissions';
+import { softRemove } from '/imports/api/parenting/softRemove';
+import SoftRemovableSchema from '/imports/api/parenting/SoftRemovableSchema';
+import { storedIconsSchema } from '/imports/api/icons/Icons';
+import '/imports/api/library/methods/index';
+import { updateReferenceNodeWork } from '/imports/api/library/methods/updateReferenceNode';
+import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
+import { restore } from '/imports/api/parenting/softRemove';
+import { fetchDocByRef, getAncestry } from '/imports/api/parenting/parentingFunctions';
+import { rebuildNestedSets } from '/imports/api/parenting/parentingFunctions';
 
 let LibraryNodes = new Mongo.Collection('libraryNodes');
 
@@ -36,20 +38,66 @@ let LibraryNodeSchema = new SimpleSchema({
     type: String,
     max: STORAGE_LIMITS.tagLength,
   },
+  icon: {
+    type: storedIconsSchema,
+    optional: true,
+    max: STORAGE_LIMITS.icon,
+  },
+
+  // Library-specific properties, these can be stripped from the resulting
+  // creature properties
+
+  // Will this property show up in the slot-fill dialog
+  fillSlots: {
+    type: Boolean,
+    optional: true,
+    index: 1,
+  },
+  // Will this property show up in the insert-from-library dialog
+  searchable: {
+    type: Boolean,
+    optional: true,
+    index: 1,
+  },
   libraryTags: {
     type: Array,
-    defaultValue: [],
+    optional: true,
     maxCount: STORAGE_LIMITS.tagCount,
   },
   'libraryTags.$': {
     type: String,
     max: STORAGE_LIMITS.tagLength,
   },
-  icon: {
-    type: storedIconsSchema,
+  // Overrides the type when searching for properties
+  slotFillerType: {
+    type: String,
     optional: true,
-    max: STORAGE_LIMITS.icon,
-  }
+    max: STORAGE_LIMITS.variableName,
+  },
+  // Image to display when filling the slot
+  slotFillImage: {
+    type: String,
+    optional: true,
+    max: STORAGE_LIMITS.url,
+  },
+  // Fill more than one quantity in a slot, like feats and ability score
+  // improvements, filtered out of UI if there isn't space in quantityExpected
+  slotQuantityFilled: {
+    type: SimpleSchema.Integer,
+    optional: true, // Undefined implies 1
+  },
+  // Filters out of UI if condition isn't met, but isn't otherwise enforced
+  slotFillerCondition: {
+    type: String,
+    optional: true,
+    max: STORAGE_LIMITS.calculation,
+  },
+  // Text to display if slot filler condition fails
+  slotFillerConditionNote: {
+    type: String,
+    optional: true,
+    max: STORAGE_LIMITS.calculation,
+  },
 });
 
 // Set up server side search index
@@ -67,6 +115,13 @@ for (let key in propertySchemasIndex) {
   schema.extend(propertySchemasIndex[key]);
   schema.extend(ChildSchema);
   schema.extend(SoftRemovableSchema);
+  // Use the any schema as a default schema for the collection
+  if (key === 'any') {
+    // @ts-expect-error don't have types for .attachSchema
+    LibraryNodes.attachSchema(schema);
+  }
+  // TODO make this an else branch and remove all {selector: {type: any}} options
+  // @ts-expect-error don't have types for .attachSchema
   LibraryNodes.attachSchema(schema, {
     selector: { type: key }
   });
@@ -74,7 +129,7 @@ for (let key in propertySchemasIndex) {
 
 function getLibrary(node) {
   if (!node) throw new Meteor.Error('No node provided');
-  let library = Libraries.findOne(node.ancestors[0].id);
+  let library = Libraries.findOne(node.root.id);
   if (!library) throw new Meteor.Error('Library does not exist');
   return library;
 }
@@ -86,20 +141,54 @@ function assertNodeEditPermission(node, userId) {
 
 const insertNode = new ValidatedMethod({
   name: 'libraryNodes.insert',
-  validate: null,
+  validate: new SimpleSchema({
+    libraryNode: {
+      type: Object,
+      blackbox: true,
+    },
+    parentRef: RefSchema,
+  }).validator(),
   mixins: [RateLimiterMixin],
   rateLimit: {
     numRequests: 5,
     timeInterval: 5000,
   },
-  run(libraryNode) {
+  run({ libraryNode, parentRef }) {
+    // get the new ancestry
+    const parentDoc = fetchDocByRef(parentRef);
+
+    // Check permission to edit
+    let rootLibrary;
+    if (parentRef.collection === 'libraries') {
+      rootLibrary = parentDoc;
+    } else if (parentRef.collection === 'libraryNodes') {
+      rootLibrary = Libraries.findOne(parentDoc.root.id);
+      libraryNode.parentId = parentRef.id;
+    } else {
+      throw `${parentRef.collection} is not a valid parent collection`
+    }
+    assertEditPermission(rootLibrary, this.userId);
+
+    // Set the root of the node we are inserting
+    libraryNode.root = { collection: 'libraries', id: rootLibrary._id };
+
+    // Remove its ID if it came with one to force a random one to be generated
+    // server-side
     delete libraryNode._id;
-    assertNodeEditPermission(libraryNode, this.userId);
-    let nodeId = LibraryNodes.insert(libraryNode);
+
+    // Insert the node
+    const nodeId = LibraryNodes.insert(libraryNode);
+
+    // Update the node if it was a reference node
     if (libraryNode.type == 'reference') {
       libraryNode._id = nodeId;
       updateReferenceNodeWork(libraryNode, this.userId);
     }
+
+    // Tree structure changed by insert, reorder the tree
+    rebuildNestedSets(LibraryNodes, rootLibrary._id);
+
+    // Return the id of the inserted node
     return nodeId;
   },
 });
@@ -114,12 +203,14 @@ const updateLibraryNode = new ValidatedMethod({
       case 'order':
       case 'parent':
       case 'ancestors':
+      case 'parentId':
+      case 'root':
         return false;
     }
   },
   mixins: [RateLimiterMixin],
   rateLimit: {
-    numRequests: 5,
+    numRequests: 15,
     timeInterval: 5000,
   },
   run({ _id, path, value }) {
@@ -196,7 +287,7 @@ const softRemoveLibraryNode = new ValidatedMethod({
   run({ _id }) {
     let node = LibraryNodes.findOne(_id);
     assertNodeEditPermission(node, this.userId);
-    softRemove({ _id, collection: LibraryNodes });
+    softRemove(LibraryNodes, node);
   }
 });
 
@@ -215,7 +306,7 @@ const restoreLibraryNode = new ValidatedMethod({
     let node = LibraryNodes.findOne(_id);
     assertNodeEditPermission(node, this.userId);
     // Do work
-    restore({ _id, collection: LibraryNodes });
+    restore(LibraryNodes, node);
   }
 });
 
