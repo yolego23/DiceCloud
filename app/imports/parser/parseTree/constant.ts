@@ -42,7 +42,8 @@ const constant: ConstantFactory = {
 }
 
 export function isFiniteNode(node: ParseNode): node is FiniteNumberConstantNode {
-  return node.parseType === 'constant'
+  return node
+    && node.parseType === 'constant'
     && node.valueType === 'number'
     && typeof node.value === 'number'
     && isFinite(node.value);

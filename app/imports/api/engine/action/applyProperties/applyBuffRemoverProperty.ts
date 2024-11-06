@@ -27,6 +27,10 @@ export default async function applyBuffRemoverProperty(
     return applyTaskToEachTarget(action, task, targetIds, userInput);
   }
 
+  if (!targetIds.length) {
+    return applyDefaultAfterPropTasks(action, prop, task.targetIds, userInput);
+  }
+
   if (targetIds.length !== 1) {
     throw 'At this step, only a single target is supported'
   }

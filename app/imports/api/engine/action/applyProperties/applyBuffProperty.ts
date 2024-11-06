@@ -26,6 +26,13 @@ export default async function applyBuffProperty(
   const prop = EJSON.clone(task.prop);
   const targetIds = prop.target === 'self' ? [action.creatureId] : task.targetIds;
 
+  // Log the buff and return if there are no targets
+  if (!targetIds.length) {
+    logBuff(prop, targetIds, action, userInput, result);
+    await applyAfterTasksSkipChildren(action, prop, targetIds, userInput);
+    return;
+  }
+
   // Get the buff and its descendants
   const propList = [
     EJSON.clone(prop),
@@ -55,16 +62,7 @@ export default async function applyBuffProperty(
     });
 
     //Log the buff
-    let logValue = prop.description?.value
-    if (prop.description?.text) {
-      recalculateInlineCalculations(prop.description, action, 'reduce', userInput);
-      logValue = prop.description?.value;
-    }
-    result.appendLog({
-      name: getPropertyTitle(prop),
-      value: logValue,
-      silenced: prop.silent,
-    }, [target]);
+    logBuff(prop, targetIds, action, userInput, result);
 
     // remove all the computed fields
     targetPropList = cleanProps(targetPropList);
@@ -75,7 +73,21 @@ export default async function applyBuffProperty(
     // Add the mutation to the results
     result.mutations.push(mutation);
   });
-  applyAfterTasksSkipChildren(action, prop, targetIds, userInput);
+  await applyAfterTasksSkipChildren(action, prop, targetIds, userInput);
+}
+
+async function logBuff(prop, targetIds, action, userInput, result) {
+  //Log the buff
+  let logValue = prop.description?.value
+  if (prop.description?.text) {
+    recalculateInlineCalculations(prop.description, action, 'reduce', userInput);
+    logValue = prop.description?.value;
+  }
+  result.appendLog({
+    name: getPropertyTitle(prop),
+    ...logValue && { value: logValue },
+    silenced: prop.silent,
+  }, targetIds);
 }
 
 /**
