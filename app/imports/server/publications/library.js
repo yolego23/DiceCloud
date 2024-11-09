@@ -301,8 +301,7 @@ Meteor.publish('descendantLibraryNodes', function (nodeId) {
   if (!libraryId || !node) return [];
   this.autorun(function () {
     let userId = this.userId;
-    let library = Libraries.findOne(libraryId);
-    try { assertViewPermission(library, userId) }
+    try { assertDocViewPermission(node, userId) }
     catch (e) {
       return this.error(e);
     }
