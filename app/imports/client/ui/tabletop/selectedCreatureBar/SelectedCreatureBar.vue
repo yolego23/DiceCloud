@@ -217,9 +217,6 @@ export default {
     }
   },
   methods: {
-    log(e) {
-      console.log(e);
-    },
     hoverIcon(e, icon) {
       if (this.selectedIcon) return;
       // this.menuX = e.clientX - (e.clientX % 44);

@@ -240,8 +240,6 @@ export default {
     },
     async castSpell(suggestedParams) {
       this.userInput = suggestedParams;
-      console.log(this.action);
-      console.log(this.action.root);
       this.activeInputParams = {
         creatureId: this.action.creatureId,
       };

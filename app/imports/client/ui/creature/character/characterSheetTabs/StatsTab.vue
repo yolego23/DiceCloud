@@ -570,9 +570,6 @@ export default {
             propArray = [];
             set(properties, propPath, propArray);
           }
-          if (!propArray?.push) {
-            console.log({propArray});
-          }
           propArray.push(prop);
         }
         return { skipChildren };

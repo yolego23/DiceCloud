@@ -88,13 +88,10 @@ const addCreaturesFromLibraryToTabletop = new ValidatedMethod({
 });
 
 function insertSubProperties(node, creatureId: string) {
-  console.log({ node, })
   let nodes = LibraryNodes.find({
     ...getFilter.descendants(node),
     removed: { $ne: true },
   }).fetch();
-
-  console.log('found nodes', nodes);
 
   for (const node of nodes) {
     node.root = {
@@ -116,7 +113,6 @@ function insertSubProperties(node, creatureId: string) {
   });
 
   // Insert the creature properties
-  console.log('final nodes', nodes);
   // @ts-expect-error Batch insert not defined
   if (nodes.length) CreatureProperties.batchInsert(nodes);
   return node;

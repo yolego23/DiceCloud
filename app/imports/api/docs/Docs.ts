@@ -97,7 +97,7 @@ if (Meteor.isClient) {
 } else if (Meteor.isServer) {
   Meteor.startup(() => {
     if (!Docs.findOne()) {
-      console.log('No docs found, filling documentation with defaults');
+      console.info('No docs found, filling documentation with defaults');
       Assets.getText('docs/defaultDocs.json', (error, string) => {
         const docs = JSON.parse(string)
         docs.forEach(doc => Docs.insert(doc));
