@@ -80,7 +80,7 @@ async function logBuff(prop, targetIds, action, userInput, result) {
   //Log the buff
   let logValue = prop.description?.value
   if (prop.description?.text) {
-    recalculateInlineCalculations(prop.description, action, 'reduce', userInput);
+    await recalculateInlineCalculations(prop.description, action, 'reduce', userInput);
     logValue = prop.description?.value;
   }
   result.appendLog({

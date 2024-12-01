@@ -8,13 +8,10 @@ import { getSingleProperty } from '/imports/api/engine/loadCreatures';
 import resolve from '/imports/parser/resolve';
 import { getEffectiveActionScope } from '/imports/api/engine/action/functions/getEffectiveActionScope';
 import { CalculatedField } from '/imports/api/properties/subSchemas/computedField';
-import { ResolveLevel } from '/imports/parser/parseTree/NodeFactory';
 import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
 import { EngineAction } from '/imports/api/engine/action/EngineActions';
+import ResolveLevel from '/imports/parser/types/ResolveLevel';
 
-// TODO Redo the work of
-// imports/api/engine/computation/computeComputation/computeByType/computeCalculation.js
-// But in the action scope
 export default async function recalculateCalculation(
   calcObj: CalculatedField,
   action,
@@ -27,7 +24,7 @@ export default async function recalculateCalculation(
   const {
     result: unaffectedResult,
     context
-  } = await resolve(parseLevel, calcObj.parseNode, scope);
+  } = await resolve(parseLevel, calcObj.parseNode, scope, undefined, userInput);
   calcObj.valueNode = unaffectedResult;
 
   // store the unaffected value
@@ -48,7 +45,7 @@ export default async function recalculateCalculation(
   // Resolve the modified valueNode, use the same context
   const {
     result: finalResult
-  } = await resolve(parseLevel, calcObj.valueNode, scope, context);
+  } = await resolve(parseLevel, calcObj.valueNode, scope, context, userInput);
 
   // Store the errors
   calcObj.errors = context.errors;
