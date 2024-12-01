@@ -28,7 +28,7 @@ export default async function applyBuffProperty(
 
   // Log the buff and return if there are no targets
   if (!targetIds.length) {
-    logBuff(prop, targetIds, action, userInput, result);
+    await logBuff(prop, targetIds, action, userInput, result);
     await applyAfterTasksSkipChildren(action, prop, targetIds, userInput);
     return;
   }
@@ -39,12 +39,12 @@ export default async function applyBuffProperty(
     ...getPropertyDescendants(action.creatureId, prop._id),
   ];
 
-  // Crystalize the variables
+  // Crystallize the variables
   if (!prop.skipCrystalization) {
-    await crystalizeVariables(action, propList, task, result);
+    await crystallizeVariables(action, propList, task, result);
   }
 
-  targetIds.forEach(target => {
+  for (const target of targetIds) {
     // Create a per-target mutation
     const mutation: Mutation = { targetIds: [target], contents: [] };
 
@@ -62,7 +62,7 @@ export default async function applyBuffProperty(
     });
 
     //Log the buff
-    logBuff(prop, targetIds, action, userInput, result);
+    await logBuff(prop, targetIds, action, userInput, result);
 
     // remove all the computed fields
     targetPropList = cleanProps(targetPropList);
@@ -72,7 +72,7 @@ export default async function applyBuffProperty(
 
     // Add the mutation to the results
     result.mutations.push(mutation);
-  });
+  }
   await applyAfterTasksSkipChildren(action, prop, targetIds, userInput);
 }
 
@@ -94,16 +94,12 @@ async function logBuff(prop, targetIds, action, userInput, result) {
  * Replaces all variables with their resolved values
  * except variables of the form `~target.thing.total` become `thing.total`
  */
-async function crystalizeVariables(
+async function crystallizeVariables(
   action: EngineAction, propList: any[], task: PropTask, result: TaskResult
 ) {
   const scope = await getEffectiveActionScope(action);
   for (const prop of propList) {
-    if (prop._skipCrystalize) {
-      delete prop._skipCrystalize;
-      return;
-    }
-    // Iterate through all the calculations and crystalize them
+    // Iterate through all the calculations and crystallize them
     for (const calcKey of computedSchemas[prop.type].computedFields()) {
       await applyFnToKeyAsync(prop, calcKey, async (prop, key) => {
         const calcObj = get(prop, key);

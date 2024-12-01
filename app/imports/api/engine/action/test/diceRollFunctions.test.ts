@@ -30,7 +30,7 @@ const actionTestCreature = {
   ],
 }
 
-describe.only('Built in dice functions', function () {
+describe('Built in dice functions', function () {
   // Increase timeout
   this.timeout(8000);
 
