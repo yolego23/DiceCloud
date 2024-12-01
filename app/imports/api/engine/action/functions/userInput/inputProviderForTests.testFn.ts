@@ -1,4 +1,4 @@
-import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
+import InputProvider, { CastSpellParams } from '/imports/api/engine/action/functions/userInput/InputProvider';
 
 const inputProviderForTests: InputProvider = {
   async targetIds(target, currentTargetIds = []) {
@@ -43,8 +43,19 @@ const inputProviderForTests: InputProvider = {
     return suggestedParams;
   },
   async castSpell(suggestedParams) {
-    return suggestedParams;
+    return suggestedParams as CastSpellParams;
   },
 }
+
+export const critInputProvider: InputProvider = {
+  ...inputProviderForTests,
+  async rollDice(dice = []) {
+    // when rolling 1d20, crit, otherwise use the normal test roll provider
+    if (dice.length === 1 && dice[0].diceSize === 20 && dice[0].number === 1) {
+      return [[20]];
+    }
+    return inputProviderForTests.rollDice(dice);
+  },
+};
 
 export default inputProviderForTests;

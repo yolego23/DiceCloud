@@ -21,7 +21,7 @@ export default async function applyDamageProperty(
   task: PropTask, action: EngineAction, result: TaskResult, inputProvider: InputProvider
 ) {
   const prop = task.prop;
-  const scope = getEffectiveActionScope(action);
+  const scope = await getEffectiveActionScope(action);
 
   // Choose target
   const damageTargets = prop.target === 'self' ? [action.creatureId] : task.targetIds;

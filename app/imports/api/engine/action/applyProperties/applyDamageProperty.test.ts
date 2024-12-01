@@ -6,6 +6,7 @@ import {
   removeAllCreaturesAndProps,
   runActionById
 } from '/imports/api/engine/action/functions/actionEngineTest.testFn';
+import { critInputProvider } from '../functions/userInput/inputProviderForTests.testFn';
 
 const [
   creatureId, targetCreatureId, targetCreature2Id, damageTargetId, damageSelfId, targetCreatureHitPointsId, targetCreature2HitPointsId, selfHitPointsId, damageWithEffectsId, effectId, effect2Id,
@@ -239,6 +240,52 @@ describe('Apply Damage Properties', function () {
           inc: { damage: 22, value: -22 },
         },
       ],
+    }]);
+  });
+
+  it('Doubles damage on a critical hit', async function () {
+    const [
+      creatureId, damageId, actionId
+    ] = getRandomIds(3);
+    const testCreature = {
+      _id: creatureId,
+      props: [
+        {
+          _id: actionId,
+          type: 'action',
+          attackRoll: { calculation: '10' },
+          children: [
+            {
+              _id: damageId,
+              type: 'damage',
+              target: 'target',
+              amount: { calculation: '2d6 + 7' }
+            },
+          ]
+        },
+      ],
+    };
+    await createTestCreature(testCreature);
+
+    const action = await runActionById(actionId, [], critInputProvider);
+    assert.exists(action);
+    assert.deepEqual(allMutations(action), [{
+      'contents': [{ 'name': 'Action' }],
+      'targetIds': []
+    }, {
+      'contents': [{
+        'inline': true,
+        'name': 'Critical Hit!',
+        'value': '1d20 [20] + 10\n**30**'
+      }],
+      'targetIds': [],
+    }, {
+      'contents': [{
+        'inline': true,
+        'name': 'Damage',
+        'value': '2d6 [3, 4, 5, 6] + 7\n**25** critical slashing damage',
+      }],
+      'targetIds': [],
     }]);
   });
 });
