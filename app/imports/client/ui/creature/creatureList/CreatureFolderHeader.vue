@@ -50,8 +50,8 @@
 
 <script lang="js">
   import Vue from 'vue';
-  import updateCreatureFolderName from '/imports/api/creature/creatureFolders/methods.js/updateCreatureFolderName';
-  import removeCreatureFolder from '/imports/api/creature/creatureFolders/methods.js/removeCreatureFolder';
+  import updateCreatureFolderName from '/imports/api/creature/creatureFolders/methods/updateCreatureFolderName';
+  import removeCreatureFolder from '/imports/api/creature/creatureFolders/methods/removeCreatureFolder';
   import {snackbar} from '/imports/client/ui/components/snackbars/SnackbarQueue';
 
   export default {

@@ -1,4 +1,4 @@
-import '/imports/api/creature/creatureFolders/methods.js/insertCreatureFolder';
-import '/imports/api/creature/creatureFolders/methods.js/updateCreatureFolderName';
-import '/imports/api/creature/creatureFolders/methods.js/removeCreatureFolder';
-import '/imports/api/creature/creatureFolders/methods.js/moveCreatureToFolder';
+import '/imports/api/creature/creatureFolders/methods/insertCreatureFolder';
+import '/imports/api/creature/creatureFolders/methods/updateCreatureFolderName';
+import '/imports/api/creature/creatureFolders/methods/removeCreatureFolder';
+import '/imports/api/creature/creatureFolders/methods/moveCreatureToFolder';
