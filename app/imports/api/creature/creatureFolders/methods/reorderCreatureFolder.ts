@@ -1,24 +1,38 @@
 import CreatureFolders from '/imports/api/creature/creatureFolders/CreatureFolders';
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
+import { zId } from '/imports/api/utility/zId'
+import { z } from 'zod';
+import { CreatureFolder } from '/imports/api/creature/creatureFolders/CreatureFolders';
+import zodSchemaMixin from '/imports/api/utility/zodSchemaMixin';
+
+const schema = z.object({
+  _id: zId(),
+  order: CreatureFolder.shape.order,
+});
 
 const reorderCreatureFolder = new ValidatedMethod({
   name: 'creatureFolders.methods.reorder',
+  schema,
   validate: null,
-  mixins: [RateLimiterMixin],
+  mixins: [RateLimiterMixin, zodSchemaMixin],
   rateLimit: {
     numRequests: 5,
     timeInterval: 5000,
   },
-  run({ _id, order }) {
+  run({ _id, order }: z.infer<typeof schema>) {
     // Ensure logged in
-    let userId = this.userId;
+    const userId = this.userId;
     if (!userId) {
       throw new Meteor.Error('creatureFolders.methods.reorder.denied',
         'You need to be logged in to reorder a folder');
     }
     // Check that this folder is owned by the user
-    let existingFolder = CreatureFolders.findOne(_id);
+    const existingFolder = CreatureFolders.findOne(_id);
+    if (!existingFolder) {
+      throw new Meteor.Error('creatureFolders.methods.updateName.denied',
+        'The specified folder does not exist');
+    }
     if (existingFolder.owner !== userId) {
       throw new Meteor.Error('creatureFolders.methods.reorder.denied',
         'This folder does not belong to you');

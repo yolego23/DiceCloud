@@ -1,9 +1,12 @@
+import type { z } from 'zod';
+
 declare module 'meteor/mdg:validated-method' {
   interface ValidatedMethodOptionsMixinFields<TRunArg, TRunReturn> {
     rateLimit: {
       numRequests: number,
       timeInterval: number,
     };
+    schema?: z.ZodType<any, any>;
   }
   type Return<TFunc> = TFunc extends (...args: any[]) => infer TReturn ? TReturn : never;
   type Argument<TFunc> = TFunc extends (...args: infer TArgs) => any ? TArgs extends [infer TArg] ? TArg

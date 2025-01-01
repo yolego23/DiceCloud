@@ -12,14 +12,18 @@ const moveCreatureToFolder = new ValidatedMethod({
   },
   run({ creatureId, folderId }) {
     // Ensure logged in
-    let userId = this.userId;
+    const userId = Meteor.userId();
     if (!userId) {
       throw new Meteor.Error('creatureFolders.methods.updateName.denied',
         'You need to be logged in to remove a folder');
     }
     // Check that this folder is owned by the user
     if (folderId) {
-      let existingFolder = CreatureFolders.findOne(folderId);
+      const existingFolder = CreatureFolders.findOne(folderId);
+      if (!existingFolder) {
+        throw new Meteor.Error('creatureFolders.methods.updateName.denied',
+          'The specified folder does not exist');
+      }
       if (existingFolder.owner !== userId) {
         throw new Meteor.Error('creatureFolders.methods.updateName.denied',
           'This folder does not belong to you');
