@@ -1,21 +1,37 @@
 import SimpleSchema from 'simpl-schema';
 import ErrorSchema from '/imports/api/properties/subSchemas/ErrorSchema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
-import ParseNode from '/imports/parser/parseTree/ParseNode';
-import { ConstantValueType } from '/imports/parser/parseTree/constant';
+import { z } from 'zod';
+import { zParseNode } from '/imports/parser/parseTree/zParseNode';
+import { zId } from '/imports/api/utility/zId';
+import { zError } from './zError';
 
-export interface CalculatedField {
-  calculation?: string;
-  value?: ConstantValueType;
-  valueNode: ParseNode;
-  effectIds?: string[];
-  proficiencyIds?: string[];
-  unaffected?: ConstantValueType;
-  parseNode?: ParseNode;
-  parseError?: any;
-  hash?: number;
-  errors?: any[];
-}
+const calcResult = () => z.union([z.string(), z.number()]);
+
+const zFieldToCompute = () => z.object({
+  calculation: z.string().max(STORAGE_LIMITS.calculation).optional(),
+}).optional().describe('fieldToCompute');
+
+const zComputedOnlyField = () => z.object({
+  unaffected: calcResult().optional(),
+  value: calcResult().optional(),
+  valueNode: zParseNode().optional(),
+  effectIds: zId().array().optional().describe('removeBeforeCompute'),
+  proficiencyIds: zId().array().optional().describe('removeBeforeCompute'),
+  parseNode: zParseNode().optional(),
+  parseError: zError().optional(),
+  hash: z.number().optional(),
+  errors: zError().array().optional().describe('removeBeforeCompute'),
+  // Effect aggregations
+  advantage: z.number().optional().describe('removeBeforeCompute'),
+  disadvantage: z.number().optional().describe('removeBeforeCompute'),
+  fail: z.number().optional().describe('removeBeforeCompute'),
+  conditional: z.string().array().optional().describe('removeBeforeCompute'),
+}).optional();
+
+const zComputedField = () => zFieldToCompute().unwrap().merge(
+  zComputedOnlyField().unwrap()
+).optional();
 
 // Get schemas that apply fields directly so they can be gracefully extended
 // because {type: Schema} fields can't be extended
@@ -169,4 +185,7 @@ export {
   fieldToCompute,
   computedOnlyField,
   computedField,
+  zFieldToCompute,
+  zComputedOnlyField,
+  zComputedField,
 };

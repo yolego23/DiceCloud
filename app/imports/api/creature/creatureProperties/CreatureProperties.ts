@@ -6,29 +6,64 @@ import SoftRemovableSchema from '/imports/api/parenting/SoftRemovableSchema';
 import propertySchemasIndex from '/imports/api/properties/computedPropertySchemasIndex';
 import { storedIconsSchema } from '/imports/api/icons/Icons';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
+import { ComputedProperties } from '../../properties/Properties';
+import { z } from 'zod';
+import { zId } from '../../utility/zId';
 
-// TODO make this a union type of all CreatureProperty types
-const CreatureProperties: Mongo.Collection<any> = new Mongo.Collection('creatureProperties');
+const CreaturePropertyBeforeCompute = z.object({
+  _id: zId(),
+  _migrationError: z.string().optional(),
+  tags: z.string().max(STORAGE_LIMITS.tagLength).array().max(STORAGE_LIMITS.tagCount),
+  disabled: z.boolean().optional(),
+  icon: z.object({
+    name: z.string().max(STORAGE_LIMITS.name),
+    shape: z.string().max(STORAGE_LIMITS.icon),
+  }).optional(),
+  libraryNodeId: zId().optional(),
+  slotQuantityFilled: z.number().optional(), // undefined implies 1
+});
 
-export interface CreatureProperty extends TreeDoc {
-  _id: string
-  _migrationError?: string
-  tags: string[]
-  type: string
-  disabled?: boolean
-  icon?: {
-    name: string
-    shape: string
-  },
-  libraryNodeId?: string
-  slotQuantityFilled?: number
-  inactive?: boolean
-  deactivatedByAncestor?: boolean
-  deactivatedBySelf?: boolean
-  deactivatedByToggle?: boolean
-  deactivatingToggleId?: boolean
-  dirty?: boolean
+const DenormalisedOnlyCreatureProperty = z.object({
+  dirty: z.boolean().optional().default(true).describe('removeBeforeCompute'),
+  // Denormalised flag if this property is inactive on the sheet for any reason
+  // Including being disabled, or a descendant of a disabled property
+  inactive: z.boolean().optional().describe('removeBeforeCompute'),
+  // Denormalised flag if this property was made inactive by an inactive
+  // ancestor. True if this property has an inactive ancestor even if this
+  // property is itself inactive
+  deactivatedByAncestor: z.boolean().optional().describe('removeBeforeCompute'),
+  // Denormalised flag if this property was made inactive because of its own
+  // state
+  deactivatedBySelf: z.boolean().optional().describe('removeBeforeCompute'),
+  // Denormalised flag if this property was made inactive because of a toggle
+  // calculation. Either an ancestor toggle calculation or its own.
+  deactivatedByToggle: z.boolean().optional().describe('removeBeforeCompute'),
+  deactivatingToggleId: zId().optional().describe('removeBeforeCompute'),
+  // Triggers
+  triggerIds: z.object({
+    before: zId().array().optional(),
+    after: zId().array().optional(),
+    afterChildren: zId().array().optional(),
+  }).optional().describe('removeBeforeCompute'),
+});
+
+const UntypedCreatureProperty = CreaturePropertyBeforeCompute.merge(DenormalisedOnlyCreatureProperty);
+
+const buildCreatureProperty = function <T extends z.ZodObject<any>>(schema: T) {
+  return UntypedCreatureProperty
+    // .merge(Color)
+    // .merge(Child)
+    // .merge(SoftRemovable)
+    .merge(schema);
 }
+
+const CreatureProperty = z.discriminatedUnion('type', [
+  buildCreatureProperty(ComputedProperties.action),
+]);
+
+export type CreatureProperty = z.infer<typeof CreatureProperty>;
+
+const CreatureProperties: Mongo.Collection<CreatureProperty> = new Mongo.Collection('creatureProperties');
 
 const CreaturePropertySchema = new SimpleSchema({
   _id: {
@@ -81,6 +116,7 @@ const DenormalisedOnlyCreaturePropertySchema = new SimpleSchema({
   inactive: {
     type: Boolean,
     optional: true,
+    // @ts-expect-error index not defined in simpl-schema
     index: 1,
     removeBeforeCompute: true,
   },
@@ -90,6 +126,7 @@ const DenormalisedOnlyCreaturePropertySchema = new SimpleSchema({
   deactivatedByAncestor: {
     type: Boolean,
     optional: true,
+    // @ts-expect-error index not defined in simpl-schema
     index: 1,
     removeBeforeCompute: true,
   },
@@ -98,6 +135,7 @@ const DenormalisedOnlyCreaturePropertySchema = new SimpleSchema({
   deactivatedBySelf: {
     type: Boolean,
     optional: true,
+    // @ts-expect-error index not defined in simpl-schema
     index: 1,
     removeBeforeCompute: true,
   },
@@ -106,6 +144,7 @@ const DenormalisedOnlyCreaturePropertySchema = new SimpleSchema({
   deactivatedByToggle: {
     type: Boolean,
     optional: true,
+    // @ts-expect-error index not defined in simpl-schema
     index: 1,
     removeBeforeCompute: true,
   },
@@ -113,12 +152,14 @@ const DenormalisedOnlyCreaturePropertySchema = new SimpleSchema({
     type: String,
     regEx: SimpleSchema.RegEx.Id,
     optional: true,
+    // @ts-expect-error simple schema extensions not defined
     removeBeforeCompute: true,
   },
   // Triggers that fire when this property is applied
   'triggerIds': {
     type: Object,
     optional: true,
+    // @ts-expect-error simple schema extensions not defined
     removeBeforeCompute: true,
   },
   'triggerIds.before': {

@@ -1,14 +1,20 @@
 import SimpleSchema from 'simpl-schema';
 import ErrorSchema from '/imports/api/properties/subSchemas/ErrorSchema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
-import { CalculatedField } from './computedField';
+import { zComputedField } from './computedField';
+import { z } from 'zod';
 
-export interface InlineCalculation {
-  text?: string,
-  hash?: number,
-  value?: string,
-  inlineCalculations: CalculatedField[],
-}
+const zInlineCalculation = () => z.object({
+  text: z.string().max(STORAGE_LIMITS.inlineCalculationField).optional(),
+}).optional().describe('inlineCalculationField');
+
+const zCalculatedOnlyInlineCalculation = () => z.object({
+  hash: z.number().optional(),
+  value: z.string().max(STORAGE_LIMITS.inlineCalculationField).optional().describe('removeBeforeCompute'),
+  inlineCalculations: zComputedField().unwrap().array(),
+}).optional();
+
+const zCalculatedInlineCalculation = () => zInlineCalculation().unwrap().merge(zCalculatedOnlyInlineCalculation().unwrap()).optional();
 
 // Get schemas that apply fields directly so they can be gracefully extended
 // because {type: Schema} fields can't be extended
@@ -45,6 +51,7 @@ function computedOnlyInlineCalculationField(field) {
       type: String,
       optional: true,
       max: STORAGE_LIMITS.inlineCalculationField,
+      // @ts-expect-error simple schema extensions not defined
       removeBeforeCompute: true,
     },
     [`${field}.inlineCalculations`]: {
@@ -107,4 +114,7 @@ export {
   inlineCalculationFieldToCompute,
   computedOnlyInlineCalculationField,
   computedInlineCalculationField,
+  zInlineCalculation,
+  zCalculatedOnlyInlineCalculation,
+  zCalculatedInlineCalculation,
 };

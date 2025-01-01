@@ -3,63 +3,103 @@ import createPropertySchema from '/imports/api/properties/subSchemas/createPrope
 import { storedIconsSchema } from '/imports/api/icons/Icons';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import VARIABLE_NAME_REGEX from '/imports/constants/VARIABLE_NAME_REGEX';
-import { CreatureProperty } from '/imports/api/creature/creatureProperties/CreatureProperties';
-import { InlineCalculation } from '/imports/api/properties/subSchemas/inlineCalculationField';
-import { CalculatedField } from '/imports/api/properties/subSchemas/computedField';
-import Property from '/imports/api/properties/Properties.type';
+import { z } from 'zod';
+import { zCalculatedInlineCalculation, zCalculatedOnlyInlineCalculation, zInlineCalculation } from './subSchemas/inlineCalculationField';
+import { zVariableName } from './subSchemas/zVariableName';
+import { zComputedField, zComputedOnlyField, zFieldToCompute } from './subSchemas/computedField';
+import { zId } from '/imports/api/utility/zId';
+import { zColor } from './subSchemas/zColor';
 
-export type CreatureAction = Action & CreatureProperty & {
-  overridden?: boolean
-  insufficientResources?: boolean
-}
+export const ActionProperty = z.object({
+  type: z.literal('action'),
+  name: z.string().max(STORAGE_LIMITS.name).optional(),
+  summary: zInlineCalculation(),
+  description: zInlineCalculation(),
+  actionType: z.enum([
+    'action', 'bonus', 'attack', 'reaction', 'free', 'long', 'event'
+  ]).default('action'),
+  variableName: zVariableName().optional(),
+  target: z.enum([
+    'self', 'singleTarget', 'multipleTargets',
+  ]).default('singleTarget'),
+  attackRoll: zFieldToCompute(),
+  uses: zFieldToCompute(),
+  usesUsed: z.number().optional(),
+  reset: zVariableName().optional(),
+  resources: z.object({
+    itemsConsumed: z.object({
+      _id: zId().default(() => Random.id()),
+      tag: z.string().max(STORAGE_LIMITS.tagLength).optional(),
+      quantity: zFieldToCompute(),
+      itemId: zId().optional(),
+    }).array().max(32),
+    attributesConsumed: z.object({
+      _id: zId().default(() => Random.id()),
+      variableName: zVariableName().optional(),
+      quantity: zFieldToCompute(),
+    }).array().max(32),
+    conditions: z.object({
+      _id: zId().default(() => Random.id()),
+      condition: zFieldToCompute(),
+      conditionNote: z.string().max(STORAGE_LIMITS.calculation).optional(),
+    }).array().max(32),
+  }),
+  silent: z.boolean().optional(),
+});
+export type ActionProperty = z.infer<typeof ActionProperty>;
 
-/*
- * Actions are things a character can do
- */
-export interface Action extends ActionBase {
-  type: 'action'
-}
+export const ComputedOnlyActionProperty = z.object({
+  type: z.literal('action'),
+  summary: zCalculatedOnlyInlineCalculation(),
+  description: zCalculatedOnlyInlineCalculation(),
+  insufficientResources: z.boolean().optional(),
+  attackRoll: zComputedOnlyField(),
+  uses: zComputedOnlyField(),
+  usesLeft: z.number().optional().describe('removeBeforeCompute'),
+  overridden: z.boolean().optional().describe('removeBeforeCompute'),
+  resources: z.object({
+    itemsConsumed: z.object({
+      available: z.number().optional().describe('removeBeforeCompute'),
+      quantity: zComputedOnlyField(),
+      itemName: z.string().max(STORAGE_LIMITS.name).optional().describe('removeBeforeCompute'),
+      itemIcon: zColor().optional().describe('removeBeforeCompute'),
+    }).array().max(32),
+    attributesConsumed: z.object({
+      quantity: zComputedOnlyField(),
+      available: z.number().optional().describe('removeBeforeCompute'),
+      statName: z.string().max(STORAGE_LIMITS.name).optional().describe('removeBeforeCompute'),
+    }).array().max(32),
+    conditions: z.object({
+      condition: zComputedOnlyField(),
+    }).array().max(32),
+  }),
+});
+export type ComputedOnlyActionProperty = z.infer<typeof ComputedOnlyActionProperty>;
 
-/**
- * Base property type for both spells and actions
- */
-export interface ActionBase extends Property {
-  name?: string
-  summary?: InlineCalculation
-  description?: InlineCalculation
-  actionType: 'action' | 'bonus' | 'attack' | 'reaction' | 'free' | 'long' | 'event'
-  variableName?: string
-  target: 'self' | 'singleTarget' | 'multipleTargets'
-  attackRoll?: CalculatedField
-  uses?: CalculatedField
-  usesUsed?: number
-  reset?: string
-  silent?: boolean
-  usesLeft?: number
-  // Resources
-  resources: {
-    itemsConsumed: {
-      _id: string
-      tag?: string
-      itemName?: string
-      quantity?: CalculatedField
-      itemId?: string
-      available?: number
-    }[]
-    attributesConsumed: {
-      _id: string
-      variableName?: string
-      quantity?: CalculatedField
-      available?: number
-      statName?: string
-    }[]
-    conditions?: {
-      _id: string,
-      condition?: CalculatedField
-      conditionNote?: string,
-    }[]
-  }
-}
+export const ComputedActionProperty = ActionProperty.merge(ComputedOnlyActionProperty).extend({
+  summary: zCalculatedInlineCalculation(),
+  description: zCalculatedInlineCalculation(),
+  attackRoll: zComputedField(),
+  uses: zComputedField(),
+  resources: z.object({
+    itemsConsumed: ActionProperty.shape.resources.shape.itemsConsumed.element.merge(
+      ComputedOnlyActionProperty.shape.resources.shape.itemsConsumed.element
+    ).extend({
+      quantity: zComputedField(),
+    }).array().max(32),
+    attributesConsumed: ActionProperty.shape.resources.shape.attributesConsumed.element.merge(
+      ComputedOnlyActionProperty.shape.resources.shape.attributesConsumed.element
+    ).extend({
+      quantity: zComputedField(),
+    }).array().max(32),
+    conditions: ActionProperty.shape.resources.shape.conditions.element.merge(
+      ComputedOnlyActionProperty.shape.resources.shape.conditions.element
+    ).extend({
+      condition: zComputedField(),
+    }).array().max(32),
+  }),
+});
+export type ComputedActionProperty = z.infer<typeof ComputedActionProperty>;
 
 /*
  * Actions are things a character can do
@@ -143,6 +183,7 @@ const ActionSchema = createPropertySchema({
     type: String,
     regEx: SimpleSchema.RegEx.Id,
     autoValue() {
+      // @ts-expect-error this.isSet not defined in types
       if (!this.isSet) return Random.id();
     }
   },
@@ -171,6 +212,7 @@ const ActionSchema = createPropertySchema({
     type: String,
     regEx: SimpleSchema.RegEx.Id,
     autoValue() {
+      // @ts-expect-error this.isSet not defined in types
       if (!this.isSet) return Random.id();
     }
   },
@@ -195,6 +237,7 @@ const ActionSchema = createPropertySchema({
     type: String,
     regEx: SimpleSchema.RegEx.Id,
     autoValue() {
+      // @ts-expect-error this.isSet not defined in types
       if (!this.isSet) return Random.id();
     }
   },
@@ -314,7 +357,7 @@ const ComputedOnlyActionSchema = createPropertySchema({
   },
 });
 
-const ComputedActionSchema = new SimpleSchema()
+const ComputedActionSchema = new SimpleSchema({})
   .extend(ActionSchema)
   .extend(ComputedOnlyActionSchema);
 
