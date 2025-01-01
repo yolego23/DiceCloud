@@ -1,10 +1,10 @@
-import SimpleSchema from 'simpl-schema';
 import { Random } from 'meteor/random';
+import { InferType, TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 
-const AdjustmentSchema = new SimpleSchema({
+const AdjustmentSchema = new TypedSimpleSchema({
   _id: {
     type: String,
-    regEx: SimpleSchema.RegEx.Id,
+    max: 17,
     autoValue() {
       if (!this.isSet) return Random.id();
     }
@@ -23,7 +23,7 @@ const AdjustmentSchema = new SimpleSchema({
       'self',   // the character who took the action
       'each',   // rolled once for `each` target
       'every',  // rolled once and applied to `every` target
-    ],
+    ] as const,
   },
   // The stat this rolls applies to, if damage type is set, this is ignored
   stat: {
@@ -31,5 +31,7 @@ const AdjustmentSchema = new SimpleSchema({
     optional: true,
   },
 });
+
+export type Adjustment = InferType<typeof AdjustmentSchema>;
 
 export default AdjustmentSchema;

@@ -7,6 +7,7 @@ import { CreatureProperty } from '/imports/api/creature/creatureProperties/Creat
 import { InlineCalculation } from '/imports/api/properties/subSchemas/inlineCalculationField';
 import { CalculatedField } from '/imports/api/properties/subSchemas/computedField';
 import Property from '/imports/api/properties/Properties.type';
+import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 
 export type CreatureAction = Action & CreatureProperty & {
   overridden?: boolean
@@ -314,7 +315,7 @@ const ComputedOnlyActionSchema = createPropertySchema({
   },
 });
 
-const ComputedActionSchema = new SimpleSchema()
+const ComputedActionSchema = new TypedSimpleSchema({})
   .extend(ActionSchema)
   .extend(ComputedOnlyActionSchema);
 

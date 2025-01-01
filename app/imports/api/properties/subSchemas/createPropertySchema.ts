@@ -6,12 +6,12 @@ import {
   fieldToCompute,
   computedOnlyField,
 } from '/imports/api/properties/subSchemas/computedField';
-import SimpleSchema from 'simpl-schema';
+import { Definition, TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 
 // Search through the schema for keys whose type is 'fieldToCompute' etc.
 // replace the type with Object and attach extend the schema with
 // the required fields to make the computation work
-export default function createPropertySchema(definition) {
+export default function createPropertySchema(definition: Definition) {
   const computationFields = {
     inlineCalculationFieldToCompute: [],
     computedOnlyInlineCalculationField: [],
@@ -20,9 +20,9 @@ export default function createPropertySchema(definition) {
   };
   const computedKeys = Object.keys(computationFields);
 
-  for (let key in definition) {
+  for (const key in definition) {
     const def = definition[key];
-    if (computedKeys.includes(def.type)) {
+    if (typeof def === 'object' && 'type' in def && computedKeys.includes(def.type)) {
       computationFields[def.type].push(key);
       applyDefaultCalculationValue(definition, key);
       def.type = Object;
@@ -31,6 +31,7 @@ export default function createPropertySchema(definition) {
           `computed field: '${key}' of '${def.type}' is expected to be optional`
         );
       }
+      //@ts-expect-error removeBeforeCompute is an extension of SimpleSchema
       if (def.removeBeforeCompute) {
         console.warn(
           `computed field: '${key}' of '${def.type}' should not be removed before computation`
@@ -40,7 +41,7 @@ export default function createPropertySchema(definition) {
   }
 
   // Create a schema with the edited definition
-  const schema = new SimpleSchema(definition);
+  const schema = new TypedSimpleSchema(definition);
 
   // Extend the schema with all the computation fields
   computationFields.inlineCalculationFieldToCompute.forEach(key => {
@@ -69,7 +70,7 @@ function applyDefaultCalculationValue(definition, key) {
     // on the fields to compute
     return;
   }
-  let defaultValue = def.defaultValue;
+  const defaultValue = def.defaultValue;
   if (!defaultValue) return;
   let calcField;
   if (def.type === 'fieldToCompute') {

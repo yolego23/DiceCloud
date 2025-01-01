@@ -3,10 +3,9 @@ import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { RateLimiterMixin } from 'ddp-rate-limiter-mixin';
 import { assertAdmin } from '/imports/api/sharing/sharingPermissions';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
+import { InferType, TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 
-let Icons = new Mongo.Collection('icons');
-
-let iconsSchema = new SimpleSchema({
+const iconsSchema = new TypedSimpleSchema({
   name: {
     type: String,
     unique: true,
@@ -34,6 +33,12 @@ let iconsSchema = new SimpleSchema({
   },
 });
 
+type Icon = InferType<typeof iconsSchema>;
+
+const Icons = new Mongo.Collection<Icon>('icons');
+// @ts-expect-error don't have types for .attachSchema
+Icons.attachSchema(iconsSchema);
+
 if (Meteor.isServer) {
   Icons._ensureIndex({
     'name': 'text',
@@ -42,7 +47,7 @@ if (Meteor.isServer) {
   });
 }
 
-const storedIconsSchema = new SimpleSchema({
+const storedIconsSchema = new TypedSimpleSchema({
   name: {
     type: String,
   },
@@ -51,12 +56,15 @@ const storedIconsSchema = new SimpleSchema({
   },
 });
 
-Icons.attachSchema(iconsSchema);
-
 // This method does not validate icons against the schema, use wisely;
 const writeIcons = new ValidatedMethod({
   name: 'icons.write',
   validate: null,
+  mixins: [RateLimiterMixin],
+  rateLimit: {
+    numRequests: 20,
+    timeInterval: 10000,
+  },
   run(icons) {
     assertAdmin(this.userId);
     if (Meteor.isServer) {
@@ -88,6 +96,7 @@ const findIcons = new ValidatedMethod({
       {
         // relevant documents have a higher score.
         fields: {
+          // @ts-expect-error don't have types for meta text scoring
           score: { $meta: 'textScore' }
         },
         // `score` property specified in the projection fields above.

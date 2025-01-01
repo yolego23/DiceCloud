@@ -6,31 +6,9 @@ import SoftRemovableSchema from '/imports/api/parenting/SoftRemovableSchema';
 import propertySchemasIndex from '/imports/api/properties/computedPropertySchemasIndex';
 import { storedIconsSchema } from '/imports/api/icons/Icons';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
+import { InferType, TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 
-// TODO make this a union type of all CreatureProperty types
-const CreatureProperties: Mongo.Collection<any> = new Mongo.Collection('creatureProperties');
-
-export interface CreatureProperty extends TreeDoc {
-  _id: string
-  _migrationError?: string
-  tags: string[]
-  type: string
-  disabled?: boolean
-  icon?: {
-    name: string
-    shape: string
-  },
-  libraryNodeId?: string
-  slotQuantityFilled?: number
-  inactive?: boolean
-  deactivatedByAncestor?: boolean
-  deactivatedBySelf?: boolean
-  deactivatedByToggle?: boolean
-  deactivatingToggleId?: boolean
-  dirty?: boolean
-}
-
-const CreaturePropertySchema = new SimpleSchema({
+const PreComputeCreaturePropertySchema = new TypedSimpleSchema({
   _id: {
     type: String,
     regEx: SimpleSchema.RegEx.Id,
@@ -75,13 +53,12 @@ const CreaturePropertySchema = new SimpleSchema({
   },
 });
 
-const DenormalisedOnlyCreaturePropertySchema = new SimpleSchema({
+const DenormalisedOnlyCreaturePropertySchema = new TypedSimpleSchema({
   // Denormalised flag if this property is inactive on the sheet for any reason
   // Including being disabled, or a descendant of a disabled property
   inactive: {
     type: Boolean,
     optional: true,
-    index: 1,
     removeBeforeCompute: true,
   },
   // Denormalised flag if this property was made inactive by an inactive
@@ -90,7 +67,6 @@ const DenormalisedOnlyCreaturePropertySchema = new SimpleSchema({
   deactivatedByAncestor: {
     type: Boolean,
     optional: true,
-    index: 1,
     removeBeforeCompute: true,
   },
   // Denormalised flag if this property was made inactive because of its own
@@ -98,7 +74,6 @@ const DenormalisedOnlyCreaturePropertySchema = new SimpleSchema({
   deactivatedBySelf: {
     type: Boolean,
     optional: true,
-    index: 1,
     removeBeforeCompute: true,
   },
   // Denormalised flag if this property was made inactive because of a toggle
@@ -106,7 +81,6 @@ const DenormalisedOnlyCreaturePropertySchema = new SimpleSchema({
   deactivatedByToggle: {
     type: Boolean,
     optional: true,
-    index: 1,
     removeBeforeCompute: true,
   },
   deactivatingToggleId: {
@@ -154,9 +128,23 @@ const DenormalisedOnlyCreaturePropertySchema = new SimpleSchema({
   },
 });
 
-CreaturePropertySchema.extend(DenormalisedOnlyCreaturePropertySchema);
+const CreaturePropertySchema = PreComputeCreaturePropertySchema.extend(DenormalisedOnlyCreaturePropertySchema);
 
-for (const key in propertySchemasIndex) {
+type CreaturePropertyByType<T extends keyof typeof propertySchemasIndex> =
+  InferType<typeof propertySchemasIndex[T]>
+  & InferType<typeof CreaturePropertySchema>
+  & InferType<typeof ColorSchema>
+  & InferType<typeof ChildSchema>
+  & InferType<typeof SoftRemovableSchema>
+
+type ConvertToUnion<T> = T[keyof T];
+type CreatureProperty = ConvertToUnion<{ [key in keyof typeof propertySchemasIndex]: CreaturePropertyByType<key> }>;
+type ActionProperty = CreaturePropertyByType<'action'>;
+
+const CreatureProperties = new Mongo.Collection<CreatureProperty>('creatureProperties');
+
+let key: keyof typeof propertySchemasIndex;
+for (key in propertySchemasIndex) {
   const schema = new SimpleSchema({});
   schema.extend(propertySchemasIndex[key]);
   schema.extend(CreaturePropertySchema);
@@ -167,12 +155,13 @@ for (const key in propertySchemasIndex) {
   if (key === 'any') {
     // @ts-expect-error don't have types for .attachSchema
     CreatureProperties.attachSchema(schema);
+  } else {
+    // TODO remove all {selector: {type: any}} options
+    // @ts-expect-error don't have types for .attachSchema
+    CreatureProperties.attachSchema(schema, {
+      selector: { type: key }
+    });
   }
-  // TODO make this an else branch and remove all {selector: {type: any}} options
-  // @ts-expect-error don't have types for .attachSchema
-  CreatureProperties.attachSchema(schema, {
-    selector: { type: key }
-  });
 }
 
 export default CreatureProperties;
