@@ -2,52 +2,7 @@ import SimpleSchema from 'simpl-schema';
 import VARIABLE_NAME_REGEX from '/imports/constants/VARIABLE_NAME_REGEX';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
-import { CreatureProperty } from '/imports/api/creature/creatureProperties/CreatureProperties';
-import { CalculatedField } from '/imports/api/properties/subSchemas/computedField';
-import { InlineCalculation } from '/imports/api/properties/subSchemas/inlineCalculationField';
-import { ConstantValueType } from '/imports/parser/parseTree/constant';
-import Property from '/imports/api/properties/Properties.type';
-
-export type CreatureAttribute = Attribute & CreatureProperty & {
-  total?: ConstantValueType;
-  value?: ConstantValueType;
-  modifier?: number;
-  proficiency?: 0 | 0.49 | 0.5 | 1 | 2;
-  advantage?: -1 | 0 | 1;
-  constitutionMod?: number;
-  hide?: true;
-  overridden?: true;
-  effectIds?: string[];
-  proficiencyIds?: string[];
-  definitions?: { _id: string, type: string, row?: number }[];
-}
-
-export interface Attribute extends Property {
-  type: 'attribute';
-  name?: string;
-  variableName?: string;
-  attributeType: 'ability' | 'stat' | 'modifier' | 'hitDice' | 'healthBar' | 'resource' |
-  'spellSlot' | 'utility';
-  hitDiceSize?: 'd1' | 'd2' | 'd4' | 'd6' | 'd8' | 'd10' | 'd12' | 'd20' | 'd100';
-  spellSlotLevel?: CalculatedField;
-  healthBarColorMid?: string;
-  healthBarColorLow?: string;
-  healthBarNoDamage?: true;
-  healthBarNoHealing?: true;
-  healthBarNoDamageOverflow?: true;
-  healthBarNoHealingOverflow?: true;
-  healthBarDamageOrder?: number;
-  healthBarHealingOrder?: number;
-  baseValue?: CalculatedField;
-  description?: InlineCalculation;
-  damage?: number;
-  decimal?: true;
-  ignoreLowerLimit?: true;
-  ignoreUpperLimit?: true;
-  hideWhenTotalZero?: true;
-  hideWhenValueZero?: true;
-  reset?: string;
-}
+import { Expand, InferType } from '/imports/api/utility/TypedSimpleSchema';
 
 /*
  * Attributes are numbered stats of a character
@@ -90,7 +45,7 @@ const AttributeSchema = createPropertySchema({
   },
   // For type spellSlot, the level needs to be stored separately
   spellSlotLevel: {
-    type: 'fieldToCompute',
+    type: 'fieldToCompute' as const,
     optional: true,
   },
   // For type healthBar midColor, and lowColor can be set separately from the
@@ -134,12 +89,12 @@ const AttributeSchema = createPropertySchema({
   },
   // The starting value, before effects
   baseValue: {
-    type: 'fieldToCompute',
+    type: 'fieldToCompute' as const,
     optional: true,
   },
   // Description of what the attribute is used for
   description: {
-    type: 'inlineCalculationFieldToCompute',
+    type: 'inlineCalculationFieldToCompute' as const,
     optional: true,
   },
   // The damage done to the attribute, should always compute as positive
@@ -182,15 +137,15 @@ const AttributeSchema = createPropertySchema({
 
 const ComputedOnlyAttributeSchema = createPropertySchema({
   description: {
-    type: 'computedOnlyInlineCalculationField',
+    type: 'computedOnlyInlineCalculationField' as const,
     optional: true,
   },
   baseValue: {
-    type: 'computedOnlyField',
+    type: 'computedOnlyField' as const,
     optional: true,
   },
   spellSlotLevel: {
-    type: 'computedOnlyField',
+    type: 'computedOnlyField' as const,
     optional: true,
   },
   // The computed value of the attribute
@@ -345,5 +300,9 @@ const ComputedOnlyAttributeSchema = createPropertySchema({
 const ComputedAttributeSchema = new SimpleSchema({})
   .extend(ComputedOnlyAttributeSchema)
   .extend(AttributeSchema);
+
+export type Attribute = InferType<typeof AttributeSchema>;
+export type ComputedOnlyAttribute = InferType<typeof ComputedOnlyAttributeSchema>;
+export type ComputedAttribute = Expand<InferType<typeof AttributeSchema> & InferType<typeof ComputedOnlyAttributeSchema>>;
 
 export { AttributeSchema, ComputedOnlyAttributeSchema, ComputedAttributeSchema };

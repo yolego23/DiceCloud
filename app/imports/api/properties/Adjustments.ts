@@ -1,12 +1,12 @@
-import SimpleSchema from 'simpl-schema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
+import { Expand, InferType, TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 
 const AdjustmentSchema = createPropertySchema({
   // The roll that determines how much to change the attribute
   // This can be simplified, but should only compute when activated
   amount: {
-    type: 'fieldToCompute',
+    type: 'fieldToCompute' as const,
     parseLevel: 'compile',
     optional: true,
     defaultValue: 1,
@@ -40,14 +40,18 @@ const AdjustmentSchema = createPropertySchema({
 
 const ComputedOnlyAdjustmentSchema = createPropertySchema({
   amount: {
-    type: 'computedOnlyField',
+    type: 'computedOnlyField' as const,
     parseLevel: 'compile',
     optional: true,
   },
 });
 
-const ComputedAdjustmentSchema = new SimpleSchema()
+const ComputedAdjustmentSchema = new TypedSimpleSchema({})
   .extend(AdjustmentSchema)
   .extend(ComputedOnlyAdjustmentSchema);
+
+export type Adjustment = InferType<typeof AdjustmentSchema>;
+export type ComputedOnlyAdjustment = InferType<typeof ComputedOnlyAdjustmentSchema>;
+export type ComputedAdjustment = Expand<InferType<typeof AdjustmentSchema> & InferType<typeof ComputedOnlyAdjustmentSchema>>;
 
 export { AdjustmentSchema, ComputedAdjustmentSchema, ComputedOnlyAdjustmentSchema };

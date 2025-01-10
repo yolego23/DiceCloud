@@ -1,7 +1,7 @@
 import { Mongo } from 'meteor/mongo';
 import SimpleSchema from 'simpl-schema';
 import ColorSchema from '/imports/api/properties/subSchemas/ColorSchema';
-import ChildSchema, { TreeDoc } from '/imports/api/parenting/ChildSchema';
+import ChildSchema from '/imports/api/parenting/ChildSchema';
 import SoftRemovableSchema from '/imports/api/parenting/SoftRemovableSchema';
 import propertySchemasIndex from '/imports/api/properties/computedPropertySchemasIndex';
 import { storedIconsSchema } from '/imports/api/icons/Icons';
@@ -130,17 +130,6 @@ const DenormalisedOnlyCreaturePropertySchema = new TypedSimpleSchema({
 
 const CreaturePropertySchema = PreComputeCreaturePropertySchema.extend(DenormalisedOnlyCreaturePropertySchema);
 
-type CreaturePropertyByType<T extends keyof typeof propertySchemasIndex> =
-  InferType<typeof propertySchemasIndex[T]>
-  & InferType<typeof CreaturePropertySchema>
-  & InferType<typeof ColorSchema>
-  & InferType<typeof ChildSchema>
-  & InferType<typeof SoftRemovableSchema>
-
-type ConvertToUnion<T> = T[keyof T];
-type CreatureProperty = ConvertToUnion<{ [key in keyof typeof propertySchemasIndex]: CreaturePropertyByType<key> }>;
-type ActionProperty = CreaturePropertyByType<'action'>;
-
 const CreatureProperties = new Mongo.Collection<CreatureProperty>('creatureProperties');
 
 let key: keyof typeof propertySchemasIndex;
@@ -163,6 +152,16 @@ for (key in propertySchemasIndex) {
     });
   }
 }
+
+export type CreaturePropertyByType<T extends keyof typeof propertySchemasIndex> =
+  InferType<typeof propertySchemasIndex[T]>
+  & InferType<typeof CreaturePropertySchema>
+  & InferType<typeof ColorSchema>
+  & InferType<typeof ChildSchema>
+  & InferType<typeof SoftRemovableSchema>
+
+type ConvertToUnion<T> = T[keyof T];
+export type CreatureProperty = ConvertToUnion<{ [key in keyof typeof propertySchemasIndex]: CreaturePropertyByType<key> }>;
 
 export default CreatureProperties;
 export {

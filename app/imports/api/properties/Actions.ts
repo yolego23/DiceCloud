@@ -3,64 +3,7 @@ import createPropertySchema from '/imports/api/properties/subSchemas/createPrope
 import { storedIconsSchema } from '/imports/api/icons/Icons';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import VARIABLE_NAME_REGEX from '/imports/constants/VARIABLE_NAME_REGEX';
-import { CreatureProperty } from '/imports/api/creature/creatureProperties/CreatureProperties';
-import { InlineCalculation } from '/imports/api/properties/subSchemas/inlineCalculationField';
-import { CalculatedField } from '/imports/api/properties/subSchemas/computedField';
-import Property from '/imports/api/properties/Properties.type';
-import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
-
-export type CreatureAction = Action & CreatureProperty & {
-  overridden?: boolean
-  insufficientResources?: boolean
-}
-
-/*
- * Actions are things a character can do
- */
-export interface Action extends ActionBase {
-  type: 'action'
-}
-
-/**
- * Base property type for both spells and actions
- */
-export interface ActionBase extends Property {
-  name?: string
-  summary?: InlineCalculation
-  description?: InlineCalculation
-  actionType: 'action' | 'bonus' | 'attack' | 'reaction' | 'free' | 'long' | 'event'
-  variableName?: string
-  target: 'self' | 'singleTarget' | 'multipleTargets'
-  attackRoll?: CalculatedField
-  uses?: CalculatedField
-  usesUsed?: number
-  reset?: string
-  silent?: boolean
-  usesLeft?: number
-  // Resources
-  resources: {
-    itemsConsumed: {
-      _id: string
-      tag?: string
-      itemName?: string
-      quantity?: CalculatedField
-      itemId?: string
-      available?: number
-    }[]
-    attributesConsumed: {
-      _id: string
-      variableName?: string
-      quantity?: CalculatedField
-      available?: number
-      statName?: string
-    }[]
-    conditions?: {
-      _id: string,
-      condition?: CalculatedField
-      conditionNote?: string,
-    }[]
-  }
-}
+import { Expand, InferType, TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 
 /*
  * Actions are things a character can do
@@ -72,11 +15,11 @@ const ActionSchema = createPropertySchema({
     max: STORAGE_LIMITS.name,
   },
   summary: {
-    type: 'inlineCalculationFieldToCompute',
+    type: 'inlineCalculationFieldToCompute' as const,
     optional: true,
   },
   description: {
-    type: 'inlineCalculationFieldToCompute',
+    type: 'inlineCalculationFieldToCompute' as const,
     optional: true,
   },
   // What time-resource is used to take the action in combat
@@ -102,16 +45,16 @@ const ActionSchema = createPropertySchema({
       'self',
       'singleTarget',
       'multipleTargets',
-    ],
+    ] as const,
   },
   // Some actions have an attack roll
   attackRoll: {
-    type: 'fieldToCompute',
+    type: 'fieldToCompute' as const,
     optional: true,
   },
   // Calculation of how many times this action can be used
   uses: {
-    type: 'fieldToCompute',
+    type: 'fieldToCompute' as const,
     optional: true,
   },
   // Integer of how many times it has already been used
@@ -152,7 +95,7 @@ const ActionSchema = createPropertySchema({
     optional: true,
   },
   'resources.itemsConsumed.$.quantity': {
-    type: 'fieldToCompute',
+    type: 'fieldToCompute' as const,
     optional: true,
   },
   'resources.itemsConsumed.$.itemId': {
@@ -181,7 +124,7 @@ const ActionSchema = createPropertySchema({
     max: STORAGE_LIMITS.variableName,
   },
   'resources.attributesConsumed.$.quantity': {
-    type: 'fieldToCompute',
+    type: 'fieldToCompute' as const,
     optional: true,
   },
   'resources.conditions': {
@@ -200,7 +143,7 @@ const ActionSchema = createPropertySchema({
     }
   },
   'resources.conditions.$.condition': {
-    type: 'fieldToCompute',
+    type: 'fieldToCompute' as const,
     optional: true,
   },
   'resources.conditions.$.conditionNote': {
@@ -217,11 +160,11 @@ const ActionSchema = createPropertySchema({
 
 const ComputedOnlyActionSchema = createPropertySchema({
   summary: {
-    type: 'computedOnlyInlineCalculationField',
+    type: 'computedOnlyInlineCalculationField' as const,
     optional: true,
   },
   description: {
-    type: 'computedOnlyInlineCalculationField',
+    type: 'computedOnlyInlineCalculationField' as const,
     optional: true,
   },
   // True if the uses left is zero, or any item or attribute consumed is
@@ -232,12 +175,12 @@ const ComputedOnlyActionSchema = createPropertySchema({
     removeBeforeCompute: true,
   },
   attackRoll: {
-    type: 'computedOnlyField',
+    type: 'computedOnlyField' as const,
     optional: true,
   },
   uses: {
     parseLevel: 'reduce',
-    type: 'computedOnlyField',
+    type: 'computedOnlyField' as const,
     optional: true,
   },
   // Uses - usesUsed
@@ -270,7 +213,7 @@ const ComputedOnlyActionSchema = createPropertySchema({
     removeBeforeCompute: true,
   },
   'resources.itemsConsumed.$.quantity': {
-    type: 'computedOnlyField',
+    type: 'computedOnlyField' as const,
     optional: true,
   },
   'resources.itemsConsumed.$.itemName': {
@@ -299,7 +242,7 @@ const ComputedOnlyActionSchema = createPropertySchema({
     type: Object,
   },
   'resources.attributesConsumed.$.quantity': {
-    type: 'computedOnlyField',
+    type: 'computedOnlyField' as const,
     optional: true,
   },
   'resources.attributesConsumed.$.available': {
@@ -318,5 +261,9 @@ const ComputedOnlyActionSchema = createPropertySchema({
 const ComputedActionSchema = new TypedSimpleSchema({})
   .extend(ActionSchema)
   .extend(ComputedOnlyActionSchema);
+
+export type Action = InferType<typeof ActionSchema>;
+export type ComputedOnlyAction = InferType<typeof ComputedOnlyActionSchema>;
+export type ComputedAction = Expand<InferType<typeof ActionSchema> & InferType<typeof ComputedOnlyActionSchema>>;
 
 export { ActionSchema, ComputedOnlyActionSchema, ComputedActionSchema };

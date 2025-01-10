@@ -1,5 +1,6 @@
 import SimpleSchema from 'simpl-schema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
+import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 
 export interface Reference {
   collection: string,
@@ -15,7 +16,7 @@ export interface TreeDoc {
   removed?: true,
 }
 
-const RefSchema = new SimpleSchema({
+const RefSchema = new TypedSimpleSchema({
   id: {
     type: String,
     regEx: SimpleSchema.RegEx.Id,
@@ -26,7 +27,7 @@ const RefSchema = new SimpleSchema({
   },
 });
 
-const ChildSchema = new SimpleSchema({
+const ChildSchema = new TypedSimpleSchema({
   root: {
     type: Object,
   },
@@ -47,7 +48,7 @@ const ChildSchema = new SimpleSchema({
     optional: true,
   },
   /**
-   * The tree structure goes as follows where the numbering follows a counterclockwise depth first
+   * The tree structure goes as follows where the numbering follows a counter-clockwise depth first
    * path around the tree. The canonical structure comes from the root and parentId references,
    * while the left and right numbering is used to optimize ancestor queries.
    * 

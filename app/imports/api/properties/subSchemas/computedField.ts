@@ -4,8 +4,11 @@ import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import ParseNode from '/imports/parser/parseTree/ParseNode';
 import { ConstantValueType } from '/imports/parser/parseTree/constant';
 
-export interface CalculatedField {
+export type FieldToCalculate = {
   calculation?: string;
+}
+
+export type CalculatedOnlyField = {
   value?: ConstantValueType;
   valueNode: ParseNode;
   effectIds?: string[];
@@ -16,6 +19,8 @@ export interface CalculatedField {
   hash?: number;
   errors?: any[];
 }
+
+export type CalculatedField = FieldToCalculate & CalculatedOnlyField;
 
 // Get schemas that apply fields directly so they can be gracefully extended
 // because {type: Schema} fields can't be extended

@@ -1,4 +1,10 @@
 import SimpleSchema, { SimpleSchemaDefinition } from 'simpl-schema';
+import type {
+  FieldToCalculate, CalculatedOnlyField
+} from '/imports/api/properties/subSchemas/computedField';
+import type {
+  InlineCalculationFieldToCompute, ComputedOnlyInlineCalculationField
+} from '/imports/api/properties/subSchemas/inlineCalculationField';
 
 // It DOES NOT support a constructor with multiple schemas.
 export type Definition = Exclude<SimpleSchemaDefinition, any[]>;
@@ -27,7 +33,7 @@ type NotImplementedMarker = { readonly NotImplementedMarker: unique symbol };
 type ArrayMarker = { readonly ArrayMarker: unique symbol };
 type ObjectMarker = { readonly ObjectMarker: unique symbol };
 
-export type InferType<T> = ExpandRecursively<MakeUndefinedOptional<InferTypeInner<T>>>;
+export type InferType<T> = Expand<MakeUndefinedOptional<InferTypeInner<T>>>;
 
 // Infer TypeScript type from SimpleSchema type.
 type InferTypeInner<T> =
@@ -36,8 +42,10 @@ type InferTypeInner<T> =
   // eslint-disable-next-line @typescript-eslint/ban-types
   T extends typeof Function ? Function :
   T extends typeof Number ? number :
+  T extends typeof SimpleSchema.Integer ? number :
   T extends typeof Object ? ObjectMarker :
   T extends typeof String ? string :
+  T extends typeof Date ? Date :
   T extends RegExp ? string :
   T extends TypedSimpleSchema<infer U> ? InferSchema<U> :
   NotImplementedMarker;
@@ -50,8 +58,11 @@ export type InferField<Def extends Definition, Key extends keyof Def> =
   ? Array<InferField<Def, `${Key}.$`>>
   : ObjectMarker extends InferTypeInner<Typ>
   ? { [L in keyof Def as L extends `${Key}.${infer SubKey}` ? SubKey extends `${string}.${string}` ? never : SubKey : never]: InferField<Def, L> }
-  : Def[Key] extends { allowedValues: infer Allowed extends string[] }
-  ? InferOptional<Def, Key, InferEnum<Allowed>>
+  : Def[Key] extends { allowedValues: infer Allowed extends string[] } ? InferOptional<Def, Key, InferEnum<Allowed>>
+  : Def[Key] extends { type: 'fieldToCompute' } ? FieldToCalculate
+  : Def[Key] extends { type: 'computedOnlyField' } ? CalculatedOnlyField
+  : Def[Key] extends { type: 'inlineCalculationFieldToCompute' } ? InlineCalculationFieldToCompute
+  : Def[Key] extends { type: 'computedOnlyInlineCalculationField' } ? ComputedOnlyInlineCalculationField
   : InferOptional<Def, Key, InferTypeInner<Typ>>
   : NotImplementedMarker
   : NotImplementedMarker
@@ -71,34 +82,9 @@ export type InferSchema<Def extends Definition> = InferField<
   & { [Key in keyof Def as Key extends string ? `.${Key}` : never]: Def[Key] }, ''
 >;
 
-const testSchema = new TypedSimpleSchema({
-  name: {
-    type: String,
-    optional: true,
-  },
-  age: {
-    type: Number,
-  },
-  children: {
-    type: Array,
-    optional: true,
-    defaultValue: [],
-  },
-  'children.$': {
-    type: String,
-  },
-  type: {
-    type: String,
-    allowedValues: ['cat', 'dog'] as const,
-    optional: true,
-  }
-});
-
 // expands object types recursively
-type ExpandRecursively<T> = T extends object
+export type ExpandRecursively<T> = T extends object
   ? T extends infer O ? { [K in keyof O]: ExpandRecursively<O[K]> } : never
   : T;
 
-type testType = InferType<typeof testSchema>;
-
-type subType = ExpandRecursively<testType>
+export type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never;

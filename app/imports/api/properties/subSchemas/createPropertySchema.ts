@@ -11,7 +11,7 @@ import { Definition, TypedSimpleSchema } from '/imports/api/utility/TypedSimpleS
 // Search through the schema for keys whose type is 'fieldToCompute' etc.
 // replace the type with Object and attach extend the schema with
 // the required fields to make the computation work
-export default function createPropertySchema(definition: Definition) {
+export default function createPropertySchema<T extends Definition>(definition: T): TypedSimpleSchema<T> {
   const computationFields = {
     inlineCalculationFieldToCompute: [],
     computedOnlyInlineCalculationField: [],
