@@ -7,6 +7,7 @@ import propertySchemasIndex from '/imports/api/properties/computedPropertySchema
 import { storedIconsSchema } from '/imports/api/icons/Icons';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import { InferType, TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
+import type { ComputedProperty, ComputedPropertyTypeMap } from '/imports/api/properties/Property.type';
 
 const PreComputeCreaturePropertySchema = new TypedSimpleSchema({
   _id: {
@@ -153,15 +154,15 @@ for (key in propertySchemasIndex) {
   }
 }
 
-export type CreaturePropertyByType<T extends keyof typeof propertySchemasIndex> =
-  InferType<typeof propertySchemasIndex[T]>
+export type CreaturePropertyByType<T extends keyof ComputedPropertyTypeMap> =
+  ComputedProperty<T>
   & InferType<typeof CreaturePropertySchema>
   & InferType<typeof ColorSchema>
   & InferType<typeof ChildSchema>
   & InferType<typeof SoftRemovableSchema>
 
 type ConvertToUnion<T> = T[keyof T];
-export type CreatureProperty = ConvertToUnion<{ [key in keyof typeof propertySchemasIndex]: CreaturePropertyByType<key> }>;
+export type CreatureProperty = ConvertToUnion<{ [key in keyof ComputedPropertyTypeMap]: CreaturePropertyByType<key> }>;
 
 export default CreatureProperties;
 export {

@@ -2,7 +2,7 @@ import SimpleSchema from 'simpl-schema';
 import VARIABLE_NAME_REGEX from '/imports/constants/VARIABLE_NAME_REGEX';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
-import type { Expand, InferType } from '/imports/api/utility/TypedSimpleSchema';
+import { Expand, InferType, TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 
 /*
  * Attributes are numbered stats of a character
@@ -40,7 +40,7 @@ const AttributeSchema = createPropertySchema({
   // For type hitDice, the size needs to be stored separately
   hitDiceSize: {
     type: String,
-    allowedValues: ['d1', 'd2', 'd4', 'd6', 'd8', 'd10', 'd12', 'd20', 'd100'],
+    allowedValues: ['d1', 'd2', 'd4', 'd6', 'd8', 'd10', 'd12', 'd20', 'd100'] as const,
     optional: true,
   },
   // For type spellSlot, the level needs to be stored separately
@@ -297,7 +297,7 @@ const ComputedOnlyAttributeSchema = createPropertySchema({
   },
 });
 
-const ComputedAttributeSchema = new SimpleSchema({})
+const ComputedAttributeSchema = new TypedSimpleSchema({})
   .extend(ComputedOnlyAttributeSchema)
   .extend(AttributeSchema);
 

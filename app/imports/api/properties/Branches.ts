@@ -1,7 +1,6 @@
-import SimpleSchema from 'simpl-schema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
-import { Expand, InferType } from '/imports/api/utility/TypedSimpleSchema';
+import { Expand, InferType, TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 
 const BranchSchema = createPropertySchema({
   branchType: {
@@ -53,12 +52,12 @@ const ComputedOnlyBranchSchema = createPropertySchema({
   },
 });
 
-const ComputedBranchSchema = new SimpleSchema({})
+const ComputedBranchSchema = new TypedSimpleSchema({})
   .extend(BranchSchema)
   .extend(ComputedOnlyBranchSchema);
 
 export type Branch = InferType<typeof BranchSchema>;
 export type ComputedOnlyBranch = InferType<typeof ComputedOnlyBranchSchema>;
-export type ComputedBranch = Expand<InferType<typeof BranchSchema> & InferType<typeof ComputedOnlyBranchSchema>>;
+export type ComputedBranch = Expand<InferType<typeof BranchSchema> & InferType<typeof ComputedBranchSchema>>;
 
 export { BranchSchema, ComputedBranchSchema, ComputedOnlyBranchSchema }

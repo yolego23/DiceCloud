@@ -1,9 +1,10 @@
 import { debounce } from 'lodash';
 import Creatures from '/imports/api/creature/creatures/Creatures';
 import CreatureVariables from '/imports/api/creature/creatures/CreatureVariables';
-import CreatureProperties, { CreatureProperty } from '/imports/api/creature/creatureProperties/CreatureProperties';
+import CreatureProperties, { CreatureProperty, CreaturePropertyByType } from '/imports/api/creature/creatureProperties/CreatureProperties';
 import computeCreature from './computeCreature';
 import { getFilter } from '/imports/api/parenting/parentingFunctions';
+import { ComputedPropertyTypeMap } from '../properties/Property.type';
 
 const COMPUTE_DEBOUNCE_TIME = 100; // ms
 export const loadedCreatures: Map<string, LoadedCreature> = new Map(); // creatureId => {creature, properties, etc.}
@@ -81,13 +82,13 @@ export function getProperties(creatureId: string): CreatureProperty[] {
   return props;
 }
 
-export function getPropertiesOfType(creatureId, propType) {
+export function getPropertiesOfType<T extends keyof ComputedPropertyTypeMap>(creatureId, propType: T): CreaturePropertyByType<T>[] {
   const creature = loadedCreatures.get(creatureId);
   if (creature) {
     const props = Array.from(creature.properties.values())
       .filter(prop => !prop.removed && prop.type === propType)
       .sort((a, b) => a.left - b.left);
-    return EJSON.clone(props);
+    return EJSON.clone(props) as unknown as CreaturePropertyByType<T>[];
   }
   // console.time(`Cache miss on creature properties: ${creatureId}`)
   const props = CreatureProperties.find({
@@ -98,7 +99,7 @@ export function getPropertiesOfType(creatureId, propType) {
     sort: { left: 1 },
   }).fetch();
   // console.timeEnd(`Cache miss on creature properties: ${creatureId}`);
-  return props;
+  return props as unknown as CreaturePropertyByType<T>[];
 }
 
 /**

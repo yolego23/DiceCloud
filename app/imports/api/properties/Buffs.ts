@@ -1,15 +1,16 @@
 import SimpleSchema from 'simpl-schema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
+import { Expand, InferType, TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 
-let BuffSchema = createPropertySchema({
+const BuffSchema = createPropertySchema({
   name: {
     type: String,
     optional: true,
     max: STORAGE_LIMITS.name,
   },
   description: {
-    type: 'inlineCalculationFieldToCompute',
+    type: 'inlineCalculationFieldToCompute' as const,
     optional: true,
   },
   hideRemoveButton: {
@@ -41,14 +42,14 @@ let BuffSchema = createPropertySchema({
   },
 });
 
-let ComputedOnlyBuffSchema = createPropertySchema({
+const ComputedOnlyBuffSchema = createPropertySchema({
   description: {
-    type: 'computedOnlyInlineCalculationField',
+    type: 'computedOnlyInlineCalculationField' as const,
     optional: true,
     max: STORAGE_LIMITS.description,
   },
   duration: {
-    type: 'computedOnlyField',
+    type: 'computedOnlyField' as const,
     optional: true,
   },
   durationSpent: {
@@ -74,8 +75,12 @@ let ComputedOnlyBuffSchema = createPropertySchema({
   },
 });
 
-const ComputedBuffSchema = new SimpleSchema()
+const ComputedBuffSchema = new TypedSimpleSchema({})
   .extend(BuffSchema)
   .extend(ComputedOnlyBuffSchema);
+
+export type Buff = InferType<typeof BuffSchema>;
+export type ComputedOnlyBuff = InferType<typeof ComputedOnlyBuffSchema>;
+export type ComputedBuff = Expand<InferType<typeof BuffSchema> & InferType<typeof ComputedOnlyBuffSchema>>;
 
 export { BuffSchema, ComputedOnlyBuffSchema, ComputedBuffSchema };
