@@ -21,13 +21,13 @@ import { PointBuySchema } from '/imports/api/properties/PointBuys';
 import { ProficiencySchema } from '/imports/api/properties/Proficiencies';
 import { ReferenceSchema } from '/imports/api/properties/References';
 import { RollSchema } from '/imports/api/properties/Rolls';
-import { SavingThrowSchema } from '/imports/api/properties/SavingThrows';
-import { SkillSchema } from '/imports/api/properties/Skills';
+import { SavingThrowSchema } from './SavingThrows';
+import { SkillSchema } from './Skills';
 import { SlotSchema } from '/imports/api/properties/Slots';
-import { SpellListSchema } from '/imports/api/properties/SpellLists';
+import { SpellListSchema } from './SpellLists';
 import { SpellSchema } from '/imports/api/properties/Spells';
 import { ToggleSchema } from '/imports/api/properties/Toggles';
-import { TriggerSchema } from '/imports/api/properties/Triggers';
+import { TriggerSchema } from './Triggers';
 
 const propertySchemasIndex = {
   action: ActionSchema,

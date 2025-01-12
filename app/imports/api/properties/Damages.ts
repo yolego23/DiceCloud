@@ -2,12 +2,13 @@ import SimpleSchema from 'simpl-schema';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import VARIABLE_NAME_REGEX from '/imports/constants/VARIABLE_NAME_REGEX';
+import type { Expand, InferType } from '/imports/api/utility/TypedSimpleSchema';
 
 const DamageSchema = createPropertySchema({
   // The roll that determines how much to damage the attribute
   // This can be simplified, but only computed when applied
   amount: {
-    type: 'fieldToCompute',
+    type: 'fieldToCompute' as const,
     optional: true,
     defaultValue: '1d8 + strength.modifier',
     parseLevel: 'compile',
@@ -19,7 +20,7 @@ const DamageSchema = createPropertySchema({
     allowedValues: [
       'self',
       'target',
-    ],
+    ] as const,
   },
   damageType: {
     type: String,
@@ -39,7 +40,7 @@ const DamageSchema = createPropertySchema({
   },
   // The computed DC
   'save.dc': {
-    type: 'fieldToCompute',
+    type: 'fieldToCompute' as const,
     optional: true,
   },
   // The variable name of save to roll
@@ -50,7 +51,7 @@ const DamageSchema = createPropertySchema({
   },
   // The damage to deal on a successful save
   'save.damageFunction': {
-    type: 'fieldToCompute',
+    type: 'fieldToCompute' as const,
     optional: true,
     parseLevel: 'compile',
   },
@@ -58,7 +59,7 @@ const DamageSchema = createPropertySchema({
 
 const ComputedOnlyDamageSchema = createPropertySchema({
   amount: {
-    type: 'computedOnlyField',
+    type: 'computedOnlyField' as const,
     optional: true,
     parseLevel: 'compile',
   },
@@ -67,12 +68,12 @@ const ComputedOnlyDamageSchema = createPropertySchema({
     optional: true,
   },
   'save.dc': {
-    type: 'computedOnlyField',
+    type: 'computedOnlyField' as const,
     parseLevel: 'compile',
     optional: true,
   },
   'save.damageFunction': {
-    type: 'computedOnlyField',
+    type: 'computedOnlyField' as const,
     parseLevel: 'compile',
     optional: true,
   },
@@ -81,5 +82,9 @@ const ComputedOnlyDamageSchema = createPropertySchema({
 const ComputedDamageSchema = new SimpleSchema({})
   .extend(DamageSchema)
   .extend(ComputedOnlyDamageSchema);
+
+export type Damage = InferType<typeof DamageSchema>;
+export type ComputedOnlyDamage = InferType<typeof ComputedOnlyDamageSchema>;
+export type ComputedDamage = Expand<InferType<typeof DamageSchema> & InferType<typeof ComputedOnlyDamageSchema>>;
 
 export { DamageSchema, ComputedDamageSchema, ComputedOnlyDamageSchema };

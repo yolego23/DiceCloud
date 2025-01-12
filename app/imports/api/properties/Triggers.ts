@@ -1,6 +1,7 @@
 import SimpleSchema from 'simpl-schema';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
+import type { Expand, InferType } from '/imports/api/utility/TypedSimpleSchema';
 
 const eventOptions = {
   doActionProperty: 'Do action',
@@ -9,7 +10,7 @@ const eventOptions = {
   // flipToggle: 'Toggle changed',
   // itemEquipped: 'Item equipped'
   // itemUnequipped: 'Item unequipped'
-  damageProperty: 'Attribute damaged or healed',
+  damageProperty: 'Trigger damaged or healed',
   anyRest: 'Short or long rest',
   longRest: 'Long rest',
   shortRest: 'Short rest',
@@ -24,7 +25,7 @@ const timingOptions = {
 const actionPropertyTypeOptions = {
   action: 'Action',
   ammo: 'Ammo used',
-  adjustment: 'Attribute damage',
+  adjustment: 'Trigger damage',
   branch: 'Branch',
   buff: 'Buff',
   buffRemover: 'Buff Removed',
@@ -41,34 +42,58 @@ const actionPropertyTypeOptions = {
  * the sheet. Either during another action or as its own action after a sheet
  * event. The same trigger can't fire twice in the same action step.
  */
-let TriggerSchema = createPropertySchema({
+const TriggerSchema = createPropertySchema({
   name: {
     type: String,
     optional: true,
     max: STORAGE_LIMITS.name,
   },
   description: {
-    type: 'inlineCalculationFieldToCompute',
+    type: 'inlineCalculationFieldToCompute' as const,
     optional: true,
   },
   event: {
     type: String,
-    allowedValues: Object.keys(eventOptions),
+    allowedValues: [
+      'doActionProperty',
+      'check',
+      'damageProperty',
+      'anyRest',
+      'longRest',
+      'shortRest',
+    ] as const,
     defaultValue: 'doActionProperty',
   },
   // Action type
   actionPropertyType: {
     type: String,
-    allowedValues: Object.keys(actionPropertyTypeOptions),
+    allowedValues: [
+      'action',
+      'ammo',
+      'adjustment',
+      'branch',
+      'buff',
+      'buffRemover',
+      'damage',
+      'note',
+      'roll',
+      'savingThrow',
+      'spell',
+      'toggle',
+    ] as const,
     optional: true,
   },
   timing: {
     type: String,
-    allowedValues: Object.keys(timingOptions),
+    allowedValues: [
+      'before',
+      'after',
+      'afterChildren',
+    ] as const,
     defaultValue: 'after',
   },
   condition: {
-    type: 'fieldToCompute',
+    type: 'fieldToCompute' as const,
     optional: true,
     parseLevel: 'compile',
   },
@@ -99,7 +124,7 @@ let TriggerSchema = createPropertySchema({
   },
   'extraTags.$.operation': {
     type: String,
-    allowedValues: ['OR', 'NOT'],
+    allowedValues: ['OR', 'NOT'] as const,
     defaultValue: 'OR',
   },
   'extraTags.$.tags': {
@@ -120,15 +145,15 @@ let TriggerSchema = createPropertySchema({
 
 const ComputedOnlyTriggerSchema = createPropertySchema({
   summary: {
-    type: 'computedOnlyInlineCalculationField',
+    type: 'computedOnlyInlineCalculationField' as const,
     optional: true,
   },
   description: {
-    type: 'computedOnlyInlineCalculationField',
+    type: 'computedOnlyInlineCalculationField' as const,
     optional: true,
   },
   condition: {
-    type: 'computedOnlyField',
+    type: 'computedOnlyField' as const,
     optional: true,
     parseLevel: 'compile',
   },
@@ -137,6 +162,10 @@ const ComputedOnlyTriggerSchema = createPropertySchema({
 const ComputedTriggerSchema = new SimpleSchema({})
   .extend(TriggerSchema)
   .extend(ComputedOnlyTriggerSchema);
+
+export type Trigger = InferType<typeof TriggerSchema>;
+export type ComputedOnlyTrigger = InferType<typeof ComputedOnlyTriggerSchema>;
+export type ComputedTrigger = Expand<InferType<typeof TriggerSchema> & InferType<typeof ComputedOnlyTriggerSchema>>;
 
 export {
   TriggerSchema, ComputedOnlyTriggerSchema, ComputedTriggerSchema,

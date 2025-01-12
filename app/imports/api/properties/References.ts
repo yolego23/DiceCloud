@@ -1,14 +1,14 @@
-import SimpleSchema from 'simpl-schema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
+import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
+import type { Expand, InferType } from '/imports/api/utility/TypedSimpleSchema';
 
-let ReferenceSchema = new SimpleSchema({
+const ReferenceSchema = createPropertySchema({
   ref: {
     type: Object,
     defaultValue: {},
   },
   'ref.id': {
     type: String,
-    regEx: SimpleSchema.RegEx.Id,
     optional: true,
   },
   'ref.collection': {
@@ -62,6 +62,10 @@ let ReferenceSchema = new SimpleSchema({
   },
 });
 
-const ComputedOnlyReferenceSchema = new SimpleSchema({});
+const ComputedOnlyReferenceSchema = createPropertySchema({});
+
+export type Reference = InferType<typeof ReferenceSchema>;
+export type ComputedOnlyReference = InferType<typeof ComputedOnlyReferenceSchema>;
+export type ComputedReference = Expand<InferType<typeof ReferenceSchema> & InferType<typeof ComputedOnlyReferenceSchema>>;
 
 export { ReferenceSchema, ComputedOnlyReferenceSchema };

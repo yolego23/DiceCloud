@@ -1,17 +1,18 @@
 import SimpleSchema from 'simpl-schema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
+import { Expand, InferType } from '/imports/api/utility/TypedSimpleSchema';
 
 // Classes are like slots, except they only take class levels and enforce that
 // lower levels are taken before higher levels
-let ClassSchema = createPropertySchema({
+const ClassSchema = createPropertySchema({
   name: {
     type: String,
     optional: true,
     max: STORAGE_LIMITS.name,
   },
   description: {
-    type: 'inlineCalculationFieldToCompute',
+    type: 'inlineCalculationFieldToCompute' as const,
     optional: true,
   },
   // Only `classLevel`s with the same variable name can fill the class
@@ -59,7 +60,7 @@ let ClassSchema = createPropertySchema({
     max: STORAGE_LIMITS.tagLength,
   },
   slotCondition: {
-    type: 'fieldToCompute',
+    type: 'fieldToCompute' as const,
     optional: true,
   },
 });
@@ -67,11 +68,11 @@ let ClassSchema = createPropertySchema({
 const ComputedOnlyClassSchema = createPropertySchema({
   // Computed fields
   description: {
-    type: 'computedOnlyInlineCalculationField',
+    type: 'computedOnlyInlineCalculationField' as const,
     optional: true,
   },
   slotCondition: {
-    type: 'computedOnlyField',
+    type: 'computedOnlyField' as const,
     optional: true,
   },
 
@@ -91,8 +92,12 @@ const ComputedOnlyClassSchema = createPropertySchema({
   },
 });
 
-const ComputedClassSchema = new SimpleSchema()
+const ComputedClassSchema = new SimpleSchema({})
   .extend(ClassSchema)
   .extend(ComputedOnlyClassSchema);
+
+export type Class = InferType<typeof ClassSchema>;
+export type ComputedOnlyClass = InferType<typeof ComputedOnlyClassSchema>;
+export type ComputedClass = Expand<InferType<typeof ClassSchema> & InferType<typeof ComputedOnlyClassSchema>>;
 
 export { ClassSchema, ComputedOnlyClassSchema, ComputedClassSchema };

@@ -3,12 +3,13 @@ import VARIABLE_NAME_REGEX from '/imports/constants/VARIABLE_NAME_REGEX';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
 import TagTargetingSchema from '/imports/api/properties/subSchemas/TagTargetingSchema';
+import type { Expand, InferType } from '/imports/api/utility/TypedSimpleSchema';
 
 /*
  * Skills are anything that results in a modifier to be added to a D20
  * Skills have an ability score modifier that they use as their basis
  */
-let SkillSchema = createPropertySchema({
+const SkillSchema = createPropertySchema({
   name: {
     type: String,
     optional: true,
@@ -41,29 +42,29 @@ let SkillSchema = createPropertySchema({
       'armor',
       'language',
       'utility', //not displayed anywhere
-    ],
+    ] as const,
     defaultValue: 'skill',
   },
   // The base proficiency of this skill
   baseProficiency: {
     type: Number,
     optional: true,
-    allowedValues: [0.49, 0.5, 1, 2],
+    allowedValues: [0.49, 0.5, 1, 2] as const,
   },
   // The starting value, before effects
   baseValue: {
-    type: 'fieldToCompute',
+    type: 'fieldToCompute' as const,
     optional: true,
   },
   // Description of what the skill is used for
   description: {
-    type: 'inlineCalculationFieldToCompute',
+    type: 'inlineCalculationFieldToCompute' as const,
     optional: true,
   },
   // Skills can apply their value to other calculations as a proficiency using tag targeting
 }).extend(TagTargetingSchema);
 
-let ComputedOnlySkillSchema = createPropertySchema({
+const ComputedOnlySkillSchema = createPropertySchema({
   // Computed value of skill to be added to skill rolls
   value: {
     type: Number,
@@ -73,11 +74,11 @@ let ComputedOnlySkillSchema = createPropertySchema({
   },
   // The result of baseValueCalculation
   baseValue: {
-    type: 'computedOnlyField',
+    type: 'computedOnlyField' as const,
     optional: true,
   },
   description: {
-    type: 'computedOnlyInlineCalculationField',
+    type: 'computedOnlyInlineCalculationField' as const,
     optional: true,
   },
   // Computed value added by the ability
@@ -90,7 +91,7 @@ let ComputedOnlySkillSchema = createPropertySchema({
   advantage: {
     type: SimpleSchema.Integer,
     optional: true,
-    allowedValues: [-1, 0, 1],
+    allowedValues: [-1, 0, 1] as const,
     removeBeforeCompute: true,
   },
   // Computed bonus to passive checks
@@ -102,7 +103,7 @@ let ComputedOnlySkillSchema = createPropertySchema({
   // Computed proficiency multiplier
   proficiency: {
     type: Number,
-    allowedValues: [0, 0.49, 0.5, 1, 2],
+    allowedValues: [0, 0.49, 0.5, 1, 2] as const,
     defaultValue: 0,
     removeBeforeCompute: true,
   },
@@ -173,5 +174,9 @@ let ComputedOnlySkillSchema = createPropertySchema({
 const ComputedSkillSchema = new SimpleSchema({})
   .extend(ComputedOnlySkillSchema)
   .extend(SkillSchema);
+
+export type Skill = InferType<typeof SkillSchema>;
+export type ComputedOnlySkill = InferType<typeof ComputedOnlySkillSchema>;
+export type ComputedSkill = Expand<InferType<typeof SkillSchema> & InferType<typeof ComputedOnlySkillSchema>>;
 
 export { SkillSchema, ComputedSkillSchema, ComputedOnlySkillSchema };

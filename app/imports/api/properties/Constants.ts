@@ -1,4 +1,3 @@
-import SimpleSchema from 'simpl-schema';
 import VARIABLE_NAME_REGEX from '/imports/constants/VARIABLE_NAME_REGEX';
 import ErrorSchema from '/imports/api/properties/subSchemas/ErrorSchema';
 import {
@@ -6,14 +5,17 @@ import {
   prettifyParseError,
 } from '/imports/parser/parser';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
+import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
 import resolve from '/imports/parser/resolve';
-import Context from '../../parser/types/Context';
+import Context from '/imports/parser/types/Context';
 import traverse from '/imports/parser/traverse';
+import type ResolveLevel from '/imports/parser/types/ResolveLevel';
+import type { Expand, InferType } from '/imports/api/utility/TypedSimpleSchema';
 
 /*
  * Constants are primitive values that can be used elsewhere in computations
  */
-let ConstantSchema = new SimpleSchema({
+const ConstantSchema = createPropertySchema({
   name: {
     type: String,
     optional: true,
@@ -37,16 +39,16 @@ let ConstantSchema = new SimpleSchema({
   errors: {
     type: Array,
     maxCount: STORAGE_LIMITS.errorCount,
-    autoValue() {
-      let calc = this.field('calculation');
+    async autoValue() {
+      const calc = this.field('calculation');
       if (!calc.isSet && this.isModifier) {
         this.unset()
         return;
       }
-      let string = calc.value;
+      const string = calc.value;
       if (!string) return [];
       // Evaluate the calculation with no scope
-      let { result, context } = parseString(string);
+      const { result, context } = await parseString(string);
       // Any existing errors will result in an early failure
       if (context && context.errors.length) return context.errors;
       // Ban variables in constants if necessary
@@ -63,8 +65,8 @@ let ConstantSchema = new SimpleSchema({
   },
 });
 
-function parseString(string, fn = 'compile') {
-  let context = new Context();
+async function parseString(string, fn: ResolveLevel = 'compile') {
+  const context = new Context();
   if (!string) {
     return { result: string, context };
   }
@@ -74,15 +76,19 @@ function parseString(string, fn = 'compile') {
   try {
     node = parse(string);
   } catch (e) {
-    let message = prettifyParseError(e);
+    const message = prettifyParseError(e as Error);
     context.error(message);
     return { context };
   }
   if (!node) return { context };
-  let { result } = resolve(fn, node, {/*empty scope*/ }, context);
+  const { result } = await resolve(fn, node, {/*empty scope*/ }, context);
   return { result, context }
 }
 
-const ComputedOnlyConstantSchema = new SimpleSchema({});
+const ComputedOnlyConstantSchema = createPropertySchema({});
+
+export type Constant = InferType<typeof ConstantSchema>;
+export type ComputedOnlyConstant = InferType<typeof ComputedOnlyConstantSchema>;
+export type ComputedConstant = Expand<InferType<typeof ConstantSchema> & InferType<typeof ComputedOnlyConstantSchema>>;
 
 export { ConstantSchema, ComputedOnlyConstantSchema };

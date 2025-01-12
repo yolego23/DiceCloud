@@ -1,15 +1,16 @@
 import SimpleSchema from 'simpl-schema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
+import type { Expand, InferType } from '/imports/api/utility/TypedSimpleSchema';
 
-let SlotSchema = createPropertySchema({
+const SlotSchema = createPropertySchema({
   name: {
     type: String,
     optional: true,
     max: STORAGE_LIMITS.name,
   },
   description: {
-    type: 'inlineCalculationFieldToCompute',
+    type: 'inlineCalculationFieldToCompute' as const,
     optional: true,
   },
   slotType: {
@@ -43,7 +44,7 @@ let SlotSchema = createPropertySchema({
   },
   'extraTags.$.operation': {
     type: String,
-    allowedValues: ['OR', 'NOT'],
+    allowedValues: ['OR', 'NOT'] as const,
     defaultValue: 'OR',
   },
   'extraTags.$.tags': {
@@ -56,7 +57,7 @@ let SlotSchema = createPropertySchema({
     max: STORAGE_LIMITS.tagLength,
   },
   quantityExpected: {
-    type: 'fieldToCompute',
+    type: 'fieldToCompute' as const,
     optional: true,
     defaultValue: '1',
   },
@@ -65,7 +66,7 @@ let SlotSchema = createPropertySchema({
     optional: true,
   },
   slotCondition: {
-    type: 'fieldToCompute',
+    type: 'fieldToCompute' as const,
     optional: true,
   },
   hideWhenFull: {
@@ -78,9 +79,9 @@ let SlotSchema = createPropertySchema({
     allowedValues: [
       // Can't choose the same slot filler twice in this slot
       'uniqueInSlot',
-      // Can't choose the same slot filler twice accross the whole creature
+      // Can't choose the same slot filler twice across the whole creature
       'uniqueInCreature'
-    ],
+    ] as const,
     optional: true,
     defaultValue: 'uniqueInSlot',
   },
@@ -89,15 +90,15 @@ let SlotSchema = createPropertySchema({
 const ComputedOnlySlotSchema = createPropertySchema({
   // Computed fields
   description: {
-    type: 'computedOnlyInlineCalculationField',
+    type: 'computedOnlyInlineCalculationField' as const,
     optional: true,
   },
   quantityExpected: {
-    type: 'computedOnlyField',
+    type: 'computedOnlyField' as const,
     optional: true,
   },
   slotCondition: {
-    type: 'computedOnlyField',
+    type: 'computedOnlyField' as const,
     optional: true,
   },
 
@@ -114,8 +115,12 @@ const ComputedOnlySlotSchema = createPropertySchema({
   },
 });
 
-const ComputedSlotSchema = new SimpleSchema()
+const ComputedSlotSchema = new SimpleSchema({})
   .extend(ComputedOnlySlotSchema)
   .extend(SlotSchema);
+
+export type Slot = InferType<typeof SlotSchema>;
+export type ComputedOnlySlot = InferType<typeof ComputedOnlySlotSchema>;
+export type ComputedSlot = Expand<InferType<typeof SlotSchema> & InferType<typeof ComputedOnlySlotSchema>>;
 
 export { SlotSchema, ComputedSlotSchema, ComputedOnlySlotSchema };

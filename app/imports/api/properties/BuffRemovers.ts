@@ -1,8 +1,9 @@
 import SimpleSchema from 'simpl-schema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
+import { Expand, InferType } from '/imports/api/utility/TypedSimpleSchema';
 
-let BuffRemoverSchema = createPropertySchema({
+const BuffRemoverSchema = createPropertySchema({
   name: {
     type: String,
     optional: true,
@@ -75,10 +76,14 @@ let BuffRemoverSchema = createPropertySchema({
   },
 });
 
-let ComputedOnlyBuffRemoverSchema = createPropertySchema({});
+const ComputedOnlyBuffRemoverSchema = createPropertySchema({});
 
-const ComputedBuffRemoverSchema = new SimpleSchema()
+const ComputedBuffRemoverSchema = new SimpleSchema({})
   .extend(BuffRemoverSchema)
   .extend(ComputedOnlyBuffRemoverSchema);
+
+export type BuffRemover = InferType<typeof BuffRemoverSchema>;
+export type ComputedOnlyBuffRemover = InferType<typeof ComputedOnlyBuffRemoverSchema>;
+export type ComputedBuffRemover = Expand<InferType<typeof BuffRemoverSchema> & InferType<typeof ComputedOnlyBuffRemoverSchema>>;
 
 export { BuffRemoverSchema, ComputedOnlyBuffRemoverSchema, ComputedBuffRemoverSchema };

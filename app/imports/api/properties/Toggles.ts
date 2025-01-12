@@ -2,6 +2,7 @@ import SimpleSchema from 'simpl-schema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
 import TagTargetingSchema from '/imports/api/properties/subSchemas/TagTargetingSchema';
+import type { Expand, InferType } from '/imports/api/utility/TypedSimpleSchema';
 
 const ToggleSchema = createPropertySchema({
   name: {
@@ -29,7 +30,7 @@ const ToggleSchema = createPropertySchema({
   // if neither disabled or enabled, the condition will be run to determine
   // if the children of the toggle should be active
   condition: {
-    type: 'fieldToCompute',
+    type: 'fieldToCompute' as const,
     optional: true,
   },
   // Prevent the property from showing up in the log
@@ -41,10 +42,14 @@ const ToggleSchema = createPropertySchema({
 
 const ComputedOnlyToggleSchema = createPropertySchema({
   condition: {
-    type: 'computedOnlyField',
+    type: 'computedOnlyField' as const,
     optional: true,
   },
 });
+
+export type Toggle = InferType<typeof ToggleSchema>;
+export type ComputedOnlyToggle = InferType<typeof ComputedOnlyToggleSchema>;
+export type ComputedToggle = Expand<InferType<typeof ToggleSchema> & InferType<typeof ComputedOnlyToggleSchema>>;
 
 const ComputedToggleSchema = new SimpleSchema({})
   .extend(ComputedOnlyToggleSchema)

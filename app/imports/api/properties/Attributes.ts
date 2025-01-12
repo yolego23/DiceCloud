@@ -2,7 +2,7 @@ import SimpleSchema from 'simpl-schema';
 import VARIABLE_NAME_REGEX from '/imports/constants/VARIABLE_NAME_REGEX';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
-import { Expand, InferType } from '/imports/api/utility/TypedSimpleSchema';
+import type { Expand, InferType } from '/imports/api/utility/TypedSimpleSchema';
 
 /*
  * Attributes are numbered stats of a character
@@ -33,7 +33,7 @@ const AttributeSchema = createPropertySchema({
       'resource', // Rages, sorcery points
       'spellSlot', // Level 1, 2, 3... spell slots
       'utility', // Aren't displayed, Jump height, Carry capacity
-    ],
+    ] as const,
     defaultValue: 'stat',
     index: 1,
   },

@@ -3,12 +3,13 @@ import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import VARIABLE_NAME_REGEX from '/imports/constants/VARIABLE_NAME_REGEX';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
 import ErrorSchema from '/imports/api/properties/subSchemas/ErrorSchema';
+import type { Expand, InferType } from '/imports/api/utility/TypedSimpleSchema';
 
 /*
  * PointBuys are reason-value attached to skills and abilities
  * that modify their final value or presentation in some way
  */
-let PointBuySchema = createPropertySchema({
+const PointBuySchema = createPropertySchema({
   name: {
     type: String,
     optional: true,
@@ -50,19 +51,19 @@ let PointBuySchema = createPropertySchema({
     optional: true,
   },
   min: {
-    type: 'fieldToCompute',
+    type: 'fieldToCompute' as const,
     optional: true,
   },
   max: {
-    type: 'fieldToCompute',
+    type: 'fieldToCompute' as const,
     optional: true,
   },
   total: {
-    type: 'fieldToCompute',
+    type: 'fieldToCompute' as const,
     optional: true,
   },
   cost: {
-    type: 'fieldToCompute',
+    type: 'fieldToCompute' as const,
     optional: true,
     parseLevel: 'compile',
   },
@@ -70,15 +71,15 @@ let PointBuySchema = createPropertySchema({
 
 const ComputedOnlyPointBuySchema = createPropertySchema({
   min: {
-    type: 'computedOnlyField',
+    type: 'computedOnlyField' as const,
     optional: true,
   },
   max: {
-    type: 'computedOnlyField',
+    type: 'computedOnlyField' as const,
     optional: true,
   },
   cost: {
-    type: 'computedOnlyField',
+    type: 'computedOnlyField' as const,
     optional: true,
     parseLevel: 'compile',
   },
@@ -104,7 +105,7 @@ const ComputedOnlyPointBuySchema = createPropertySchema({
     type: ErrorSchema,
   },
   total: {
-    type: 'computedOnlyField',
+    type: 'computedOnlyField' as const,
     optional: true,
   },
   spent: {
@@ -127,8 +128,12 @@ const ComputedOnlyPointBuySchema = createPropertySchema({
   },
 });
 
-const ComputedPointBuySchema = new SimpleSchema()
+const ComputedPointBuySchema = new SimpleSchema({})
   .extend(ComputedOnlyPointBuySchema)
   .extend(PointBuySchema);
+
+export type PointBuy = InferType<typeof PointBuySchema>;
+export type ComputedOnlyPointBuy = InferType<typeof ComputedOnlyPointBuySchema>;
+export type ComputedPointBuy = Expand<InferType<typeof PointBuySchema> & InferType<typeof ComputedOnlyPointBuySchema>>;
 
 export { PointBuySchema, ComputedPointBuySchema, ComputedOnlyPointBuySchema };

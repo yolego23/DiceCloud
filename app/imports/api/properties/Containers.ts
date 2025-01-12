@@ -1,8 +1,9 @@
 import SimpleSchema from 'simpl-schema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
+import type { Expand, InferType } from '/imports/api/utility/TypedSimpleSchema';
 
-let ContainerSchema = createPropertySchema({
+const ContainerSchema = createPropertySchema({
   name: {
     type: String,
     optional: true,
@@ -29,14 +30,14 @@ let ContainerSchema = createPropertySchema({
     optional: true,
   },
   description: {
-    type: 'inlineCalculationFieldToCompute',
+    type: 'inlineCalculationFieldToCompute' as const,
     optional: true,
   },
 });
 
 const ComputedOnlyContainerSchema = createPropertySchema({
   description: {
-    type: 'computedOnlyInlineCalculationField',
+    type: 'computedOnlyInlineCalculationField' as const,
     optional: true,
   },
   // Weight of all the contents.
@@ -64,8 +65,12 @@ const ComputedOnlyContainerSchema = createPropertySchema({
   },
 });
 
-const ComputedContainerSchema = new SimpleSchema()
+const ComputedContainerSchema = new SimpleSchema({})
   .extend(ComputedOnlyContainerSchema)
   .extend(ContainerSchema);
+
+export type Container = InferType<typeof ContainerSchema>;
+export type ComputedOnlyContainer = InferType<typeof ComputedOnlyContainerSchema>;
+export type ComputedContainer = Expand<InferType<typeof ContainerSchema> & InferType<typeof ComputedOnlyContainerSchema>>;
 
 export { ContainerSchema, ComputedOnlyContainerSchema, ComputedContainerSchema };

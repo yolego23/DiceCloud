@@ -1,7 +1,8 @@
 import SimpleSchema from 'simpl-schema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
+import { TypedSimpleSchema } from 'imports/api/utility/TypedSimpleSchema';
 
-const TagTargetingSchema = new SimpleSchema({
+const TagTargetingSchema = new TypedSimpleSchema({
   // True when targeting by tags instead of stats
   targetByTags: {
     type: Boolean,
@@ -40,7 +41,7 @@ const TagTargetingSchema = new SimpleSchema({
   },
   'extraTags.$.operation': {
     type: String,
-    allowedValues: ['OR', 'NOT'],
+    allowedValues: ['OR', 'NOT'] as const,
     defaultValue: 'OR',
   },
   'extraTags.$.tags': {

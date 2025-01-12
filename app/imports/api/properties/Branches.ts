@@ -1,8 +1,9 @@
 import SimpleSchema from 'simpl-schema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
+import { Expand, InferType } from '/imports/api/utility/TypedSimpleSchema';
 
-let BranchSchema = createPropertySchema({
+const BranchSchema = createPropertySchema({
   branchType: {
     type: String,
     allowedValues: [
@@ -24,7 +25,7 @@ let BranchSchema = createPropertySchema({
       // Otherwise presents its own text with yes/no
       'choice',
       //'option',
-    ],
+    ] as const,
     defaultValue: 'if',
   },
   text: {
@@ -33,7 +34,7 @@ let BranchSchema = createPropertySchema({
     max: STORAGE_LIMITS.name,
   },
   condition: {
-    type: 'fieldToCompute',
+    type: 'fieldToCompute' as const,
     optional: true,
     parseLevel: 'compile',
   },
@@ -44,9 +45,9 @@ let BranchSchema = createPropertySchema({
   },
 });
 
-let ComputedOnlyBranchSchema = createPropertySchema({
+const ComputedOnlyBranchSchema = createPropertySchema({
   condition: {
-    type: 'computedOnlyField',
+    type: 'computedOnlyField' as const,
     optional: true,
     parseLevel: 'compile',
   },
@@ -55,5 +56,9 @@ let ComputedOnlyBranchSchema = createPropertySchema({
 const ComputedBranchSchema = new SimpleSchema({})
   .extend(BranchSchema)
   .extend(ComputedOnlyBranchSchema);
+
+export type Branch = InferType<typeof BranchSchema>;
+export type ComputedOnlyBranch = InferType<typeof ComputedOnlyBranchSchema>;
+export type ComputedBranch = Expand<InferType<typeof BranchSchema> & InferType<typeof ComputedOnlyBranchSchema>>;
 
 export { BranchSchema, ComputedBranchSchema, ComputedOnlyBranchSchema }

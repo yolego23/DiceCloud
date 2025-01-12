@@ -2,12 +2,13 @@ import SimpleSchema from 'simpl-schema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
 import TagTargetingSchema from '/imports/api/properties/subSchemas/TagTargetingSchema';
+import type { Expand, InferType } from '/imports/api/utility/TypedSimpleSchema';
 
 /*
  * Effects are reason-value attached to skills and abilities
  * that modify their final value or presentation in some way
  */
-let EffectSchema = createPropertySchema({
+const EffectSchema = createPropertySchema({
   name: {
     type: String,
     optional: true,
@@ -28,17 +29,17 @@ let EffectSchema = createPropertySchema({
       'passiveAdd',
       'fail',
       'conditional',
-    ],
+    ] as const,
   },
   amount: {
-    type: 'fieldToCompute',
+    type: 'fieldToCompute' as const,
     optional: true,
   },
   // Conditional benefits store just uncomputed text
   text: {
     type: String,
     optional: true,
-    max: STORAGE_LIMITS.effectCondition,
+    max: STORAGE_LIMITS.effectText,
   },
   // Which stats the effect is applied to
   // Each entry is a variableName targeted by this effect
@@ -55,13 +56,17 @@ let EffectSchema = createPropertySchema({
 
 const ComputedOnlyEffectSchema = createPropertySchema({
   amount: {
-    type: 'computedOnlyField',
+    type: 'computedOnlyField' as const,
     optional: true,
   },
 });
 
-const ComputedEffectSchema = new SimpleSchema()
+const ComputedEffectSchema = new SimpleSchema({})
   .extend(ComputedOnlyEffectSchema)
   .extend(EffectSchema);
+
+export type Effect = InferType<typeof EffectSchema>;
+export type ComputedOnlyEffect = InferType<typeof ComputedOnlyEffectSchema>;
+export type ComputedEffect = Expand<InferType<typeof EffectSchema> & InferType<typeof ComputedOnlyEffectSchema>>;
 
 export { EffectSchema, ComputedEffectSchema, ComputedOnlyEffectSchema };

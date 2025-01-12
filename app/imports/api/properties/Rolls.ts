@@ -2,6 +2,7 @@ import SimpleSchema from 'simpl-schema';
 import VARIABLE_NAME_REGEX from '/imports/constants/VARIABLE_NAME_REGEX';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
+import type { Expand, InferType } from '/imports/api/utility/TypedSimpleSchema';
 
 /**
  * Rolls are children to actions or other rolls, they are triggered with 0 or
@@ -21,7 +22,7 @@ import createPropertySchema from '/imports/api/properties/subSchemas/createPrope
  * If the roll fails to meet or exceed the target number, the adjustments and
  *  child rolls are applied
  */
-let RollSchema = createPropertySchema({
+const RollSchema = createPropertySchema({
   name: {
     type: String,
     defaultValue: 'New Roll',
@@ -37,7 +38,7 @@ let RollSchema = createPropertySchema({
   },
   // The roll, can be simplified, but only computed in context
   roll: {
-    type: 'fieldToCompute',
+    type: 'fieldToCompute' as const,
     parseLevel: 'compile',
     optional: true,
   },
@@ -48,9 +49,9 @@ let RollSchema = createPropertySchema({
   },
 });
 
-let ComputedOnlyRollSchema = createPropertySchema({
+const ComputedOnlyRollSchema = createPropertySchema({
   roll: {
-    type: 'computedOnlyField',
+    type: 'computedOnlyField' as const,
     parseLevel: 'compile',
     optional: true,
   },
@@ -59,5 +60,9 @@ let ComputedOnlyRollSchema = createPropertySchema({
 const ComputedRollSchema = new SimpleSchema({})
   .extend(RollSchema)
   .extend(ComputedOnlyRollSchema);
+
+export type Roll = InferType<typeof RollSchema>;
+export type ComputedOnlyRoll = InferType<typeof ComputedOnlyRollSchema>;
+export type ComputedRoll = Expand<InferType<typeof RollSchema> & InferType<typeof ComputedOnlyRollSchema>>;
 
 export { RollSchema, ComputedRollSchema, ComputedOnlyRollSchema };
