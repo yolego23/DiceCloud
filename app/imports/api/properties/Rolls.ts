@@ -1,8 +1,7 @@
-import SimpleSchema from 'simpl-schema';
 import VARIABLE_NAME_REGEX from '/imports/constants/VARIABLE_NAME_REGEX';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
-import type { Expand, InferType } from '/imports/api/utility/TypedSimpleSchema';
+import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 
 /**
  * Rolls are children to actions or other rolls, they are triggered with 0 or
@@ -57,12 +56,8 @@ const ComputedOnlyRollSchema = createPropertySchema({
   },
 });
 
-const ComputedRollSchema = new SimpleSchema({})
+const ComputedRollSchema = TypedSimpleSchema.from({})
   .extend(RollSchema)
   .extend(ComputedOnlyRollSchema);
-
-export type Roll = InferType<typeof RollSchema>;
-export type ComputedOnlyRoll = InferType<typeof ComputedOnlyRollSchema>;
-export type ComputedRoll = Expand<InferType<typeof RollSchema> & InferType<typeof ComputedOnlyRollSchema>>;
 
 export { RollSchema, ComputedRollSchema, ComputedOnlyRollSchema };

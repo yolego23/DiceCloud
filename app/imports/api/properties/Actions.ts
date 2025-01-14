@@ -3,7 +3,7 @@ import createPropertySchema from '/imports/api/properties/subSchemas/createPrope
 import { storedIconsSchema } from '/imports/api/icons/Icons';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import VARIABLE_NAME_REGEX from '/imports/constants/VARIABLE_NAME_REGEX';
-import { Expand, InferType, TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
+import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 
 /*
  * Actions are things a character can do
@@ -258,12 +258,8 @@ const ComputedOnlyActionSchema = createPropertySchema({
   },
 });
 
-const ComputedActionSchema = new TypedSimpleSchema({})
+const ComputedActionSchema = TypedSimpleSchema.from({})
   .extend(ActionSchema)
   .extend(ComputedOnlyActionSchema);
-
-export type Action = InferType<typeof ActionSchema>;
-export type ComputedOnlyAction = InferType<typeof ComputedOnlyActionSchema>;
-export type ComputedAction = Expand<InferType<typeof ActionSchema> & InferType<typeof ComputedOnlyActionSchema>>;
 
 export { ActionSchema, ComputedOnlyActionSchema, ComputedActionSchema };

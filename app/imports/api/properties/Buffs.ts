@@ -1,7 +1,7 @@
 import SimpleSchema from 'simpl-schema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
-import { Expand, InferType, TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
+import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 
 const BuffSchema = createPropertySchema({
   name: {
@@ -75,12 +75,8 @@ const ComputedOnlyBuffSchema = createPropertySchema({
   },
 });
 
-const ComputedBuffSchema = new TypedSimpleSchema({})
+const ComputedBuffSchema = TypedSimpleSchema.from({})
   .extend(BuffSchema)
   .extend(ComputedOnlyBuffSchema);
-
-export type Buff = InferType<typeof BuffSchema>;
-export type ComputedOnlyBuff = InferType<typeof ComputedOnlyBuffSchema>;
-export type ComputedBuff = Expand<InferType<typeof BuffSchema> & InferType<typeof ComputedOnlyBuffSchema>>;
 
 export { BuffSchema, ComputedOnlyBuffSchema, ComputedBuffSchema };

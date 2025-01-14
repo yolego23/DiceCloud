@@ -5,7 +5,7 @@ import { assertAdmin } from '/imports/api/sharing/sharingPermissions';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import { InferType, TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 
-const iconsSchema = new TypedSimpleSchema({
+const iconsSchema = TypedSimpleSchema.from({
   name: {
     type: String,
     unique: true,
@@ -47,7 +47,7 @@ if (Meteor.isServer) {
   });
 }
 
-const storedIconsSchema = new TypedSimpleSchema({
+const storedIconsSchema = TypedSimpleSchema.from({
   name: {
     type: String,
   },

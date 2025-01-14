@@ -1,7 +1,7 @@
 import SimpleSchema from 'simpl-schema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
-import { Expand, InferType } from '/imports/api/utility/TypedSimpleSchema';
+import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 
 // Classes are like slots, except they only take class levels and enforce that
 // lower levels are taken before higher levels
@@ -92,12 +92,8 @@ const ComputedOnlyClassSchema = createPropertySchema({
   },
 });
 
-const ComputedClassSchema = new SimpleSchema({})
+const ComputedClassSchema = TypedSimpleSchema.from({})
   .extend(ClassSchema)
   .extend(ComputedOnlyClassSchema);
-
-export type Class = InferType<typeof ClassSchema>;
-export type ComputedOnlyClass = InferType<typeof ComputedOnlyClassSchema>;
-export type ComputedClass = Expand<InferType<typeof ClassSchema> & InferType<typeof ComputedOnlyClassSchema>>;
 
 export { ClassSchema, ComputedOnlyClassSchema, ComputedClassSchema };

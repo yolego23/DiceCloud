@@ -1,7 +1,7 @@
 import { Random } from 'meteor/random';
-import { InferType, TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
+import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 
-const AdjustmentSchema = new TypedSimpleSchema({
+const AdjustmentSchema = TypedSimpleSchema.from({
   _id: {
     type: String,
     max: 17,
@@ -31,7 +31,5 @@ const AdjustmentSchema = new TypedSimpleSchema({
     optional: true,
   },
 });
-
-export type Adjustment = InferType<typeof AdjustmentSchema>;
 
 export default AdjustmentSchema;

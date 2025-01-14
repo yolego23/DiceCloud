@@ -1,7 +1,6 @@
-import SimpleSchema from 'simpl-schema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
-import { Expand, InferType } from '/imports/api/utility/TypedSimpleSchema';
+import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 
 const BuffRemoverSchema = createPropertySchema({
   name: {
@@ -50,7 +49,6 @@ const BuffRemoverSchema = createPropertySchema({
   },
   'extraTags.$._id': {
     type: String,
-    regEx: SimpleSchema.RegEx.Id,
     autoValue() {
       if (!this.isSet) return Random.id();
     }
@@ -78,12 +76,8 @@ const BuffRemoverSchema = createPropertySchema({
 
 const ComputedOnlyBuffRemoverSchema = createPropertySchema({});
 
-const ComputedBuffRemoverSchema = new SimpleSchema({})
+const ComputedBuffRemoverSchema = TypedSimpleSchema.from({})
   .extend(BuffRemoverSchema)
   .extend(ComputedOnlyBuffRemoverSchema);
-
-export type BuffRemover = InferType<typeof BuffRemoverSchema>;
-export type ComputedOnlyBuffRemover = InferType<typeof ComputedOnlyBuffRemoverSchema>;
-export type ComputedBuffRemover = Expand<InferType<typeof BuffRemoverSchema> & InferType<typeof ComputedOnlyBuffRemoverSchema>>;
 
 export { BuffRemoverSchema, ComputedOnlyBuffRemoverSchema, ComputedBuffRemoverSchema };

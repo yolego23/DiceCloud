@@ -1,7 +1,7 @@
 import SimpleSchema from 'simpl-schema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
-import type { Expand, InferType } from '/imports/api/utility/TypedSimpleSchema';
+import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 
 const SlotSchema = createPropertySchema({
   name: {
@@ -115,12 +115,8 @@ const ComputedOnlySlotSchema = createPropertySchema({
   },
 });
 
-const ComputedSlotSchema = new SimpleSchema({})
+const ComputedSlotSchema = TypedSimpleSchema.from({})
   .extend(ComputedOnlySlotSchema)
   .extend(SlotSchema);
-
-export type Slot = InferType<typeof SlotSchema>;
-export type ComputedOnlySlot = InferType<typeof ComputedOnlySlotSchema>;
-export type ComputedSlot = Expand<InferType<typeof SlotSchema> & InferType<typeof ComputedOnlySlotSchema>>;
 
 export { SlotSchema, ComputedSlotSchema, ComputedOnlySlotSchema };

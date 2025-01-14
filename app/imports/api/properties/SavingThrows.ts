@@ -1,7 +1,6 @@
-import SimpleSchema from 'simpl-schema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
-import type { Expand, InferType } from '/imports/api/utility/TypedSimpleSchema';
+import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 
 // These are the rolls made when saves are called for
 // For the saving throw bonus or proficiency, see ./Skills.js
@@ -46,12 +45,8 @@ const ComputedOnlySavingThrowSchema = createPropertySchema({
   },
 });
 
-const ComputedSavingThrowSchema = new SimpleSchema({})
+const ComputedSavingThrowSchema = TypedSimpleSchema.from({})
   .extend(SavingThrowSchema)
   .extend(ComputedOnlySavingThrowSchema);
-
-export type SavingThrow = InferType<typeof SavingThrowSchema>;
-export type ComputedOnlySavingThrow = InferType<typeof ComputedOnlySavingThrowSchema>;
-export type ComputedSavingThrow = Expand<InferType<typeof SavingThrowSchema> & InferType<typeof ComputedOnlySavingThrowSchema>>;
 
 export { SavingThrowSchema, ComputedOnlySavingThrowSchema, ComputedSavingThrowSchema };

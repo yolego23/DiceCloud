@@ -1,7 +1,6 @@
-import SimpleSchema from 'simpl-schema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
-import type { Expand, InferType } from '/imports/api/utility/TypedSimpleSchema';
+import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 
 const ContainerSchema = createPropertySchema({
   name: {
@@ -65,12 +64,8 @@ const ComputedOnlyContainerSchema = createPropertySchema({
   },
 });
 
-const ComputedContainerSchema = new SimpleSchema({})
+const ComputedContainerSchema = TypedSimpleSchema.from({})
   .extend(ComputedOnlyContainerSchema)
   .extend(ContainerSchema);
-
-export type Container = InferType<typeof ContainerSchema>;
-export type ComputedOnlyContainer = InferType<typeof ComputedOnlyContainerSchema>;
-export type ComputedContainer = Expand<InferType<typeof ContainerSchema> & InferType<typeof ComputedOnlyContainerSchema>>;
 
 export { ContainerSchema, ComputedOnlyContainerSchema, ComputedContainerSchema };

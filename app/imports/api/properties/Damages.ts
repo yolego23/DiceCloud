@@ -1,8 +1,7 @@
-import SimpleSchema from 'simpl-schema';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import VARIABLE_NAME_REGEX from '/imports/constants/VARIABLE_NAME_REGEX';
-import type { Expand, InferType } from '/imports/api/utility/TypedSimpleSchema';
+import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 
 const DamageSchema = createPropertySchema({
   // The roll that determines how much to damage the attribute
@@ -79,12 +78,8 @@ const ComputedOnlyDamageSchema = createPropertySchema({
   },
 });
 
-const ComputedDamageSchema = new SimpleSchema({})
+const ComputedDamageSchema = TypedSimpleSchema.from({})
   .extend(DamageSchema)
   .extend(ComputedOnlyDamageSchema);
-
-export type Damage = InferType<typeof DamageSchema>;
-export type ComputedOnlyDamage = InferType<typeof ComputedOnlyDamageSchema>;
-export type ComputedDamage = Expand<InferType<typeof DamageSchema> & InferType<typeof ComputedOnlyDamageSchema>>;
 
 export { DamageSchema, ComputedDamageSchema, ComputedOnlyDamageSchema };

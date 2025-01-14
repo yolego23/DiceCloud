@@ -1,7 +1,6 @@
-import SimpleSchema from 'simpl-schema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
-import type { Expand, InferType } from '/imports/api/utility/TypedSimpleSchema';
+import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 
 // Folders organize a character sheet into a tree, particularly to group things
 // like 'race' and 'background'
@@ -46,12 +45,8 @@ const ComputedOnlyFolderSchema = createPropertySchema({
   },
 });
 
-const ComputedFolderSchema = new SimpleSchema({})
+const ComputedFolderSchema = TypedSimpleSchema.from({})
   .extend(FolderSchema)
   .extend(ComputedOnlyFolderSchema);
-
-export type Folder = InferType<typeof FolderSchema>;
-export type ComputedOnlyFolder = InferType<typeof ComputedOnlyFolderSchema>;
-export type ComputedFolder = Expand<InferType<typeof FolderSchema> & InferType<typeof ComputedOnlyFolderSchema>>;
 
 export { FolderSchema, ComputedFolderSchema, ComputedOnlyFolderSchema };

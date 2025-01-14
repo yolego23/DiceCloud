@@ -16,7 +16,7 @@ export interface TreeDoc {
   removed?: true,
 }
 
-const RefSchema = new TypedSimpleSchema({
+const RefSchema = TypedSimpleSchema.from({
   id: {
     type: String,
     regEx: SimpleSchema.RegEx.Id,
@@ -27,7 +27,7 @@ const RefSchema = new TypedSimpleSchema({
   },
 });
 
-const ChildSchema = new TypedSimpleSchema({
+const ChildSchema = TypedSimpleSchema.from({
   root: {
     type: Object,
   },

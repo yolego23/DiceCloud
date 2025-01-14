@@ -1,6 +1,6 @@
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
-import { Expand, InferType, TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
+import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 
 const AdjustmentSchema = createPropertySchema({
   // The roll that determines how much to change the attribute
@@ -46,12 +46,8 @@ const ComputedOnlyAdjustmentSchema = createPropertySchema({
   },
 });
 
-const ComputedAdjustmentSchema = new TypedSimpleSchema({})
+const ComputedAdjustmentSchema = TypedSimpleSchema.from({})
   .extend(AdjustmentSchema)
   .extend(ComputedOnlyAdjustmentSchema);
-
-export type Adjustment = InferType<typeof AdjustmentSchema>;
-export type ComputedOnlyAdjustment = InferType<typeof ComputedOnlyAdjustmentSchema>;
-export type ComputedAdjustment = Expand<InferType<typeof AdjustmentSchema> & InferType<typeof ComputedOnlyAdjustmentSchema>>;
 
 export { AdjustmentSchema, ComputedAdjustmentSchema, ComputedOnlyAdjustmentSchema };

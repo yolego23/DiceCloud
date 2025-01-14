@@ -3,7 +3,7 @@ import VARIABLE_NAME_REGEX from '/imports/constants/VARIABLE_NAME_REGEX';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
 import TagTargetingSchema from '/imports/api/properties/subSchemas/TagTargetingSchema';
-import type { Expand, InferType } from '/imports/api/utility/TypedSimpleSchema';
+import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 
 /*
  * Skills are anything that results in a modifier to be added to a D20
@@ -171,12 +171,8 @@ const ComputedOnlySkillSchema = createPropertySchema({
   },
 })
 
-const ComputedSkillSchema = new SimpleSchema({})
+const ComputedSkillSchema = TypedSimpleSchema.from({})
   .extend(ComputedOnlySkillSchema)
   .extend(SkillSchema);
-
-export type Skill = InferType<typeof SkillSchema>;
-export type ComputedOnlySkill = InferType<typeof ComputedOnlySkillSchema>;
-export type ComputedSkill = Expand<InferType<typeof SkillSchema> & InferType<typeof ComputedOnlySkillSchema>>;
 
 export { SkillSchema, ComputedSkillSchema, ComputedOnlySkillSchema };

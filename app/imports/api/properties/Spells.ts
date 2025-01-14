@@ -2,12 +2,11 @@ import { ActionSchema, ComputedOnlyActionSchema } from '/imports/api/properties/
 import SimpleSchema from 'simpl-schema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
-import { TypedSimpleSchema } from '../utility/TypedSimpleSchema';
-import type { Expand, InferType } from '/imports/api/utility/TypedSimpleSchema';
+import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 
 const SpellSchema = createPropertySchema({})
   .extend(ActionSchema)
-  .extend(new TypedSimpleSchema({
+  .extend(TypedSimpleSchema.from({
     name: {
       type: String,
       optional: true,
@@ -95,12 +94,8 @@ const SpellSchema = createPropertySchema({})
 const ComputedOnlySpellSchema = createPropertySchema({})
   .extend(ComputedOnlyActionSchema);
 
-const ComputedSpellSchema = new SimpleSchema({})
+const ComputedSpellSchema = TypedSimpleSchema.from({})
   .extend(SpellSchema)
   .extend(ComputedOnlySpellSchema);
-
-export type Spell = InferType<typeof SpellSchema>;
-export type ComputedOnlySpell = InferType<typeof ComputedOnlySpellSchema>;
-export type ComputedSpell = Expand<InferType<typeof SpellSchema> & InferType<typeof ComputedOnlySpellSchema>>;
 
 export { SpellSchema, ComputedOnlySpellSchema, ComputedSpellSchema };

@@ -6,10 +6,12 @@ import SoftRemovableSchema from '/imports/api/parenting/SoftRemovableSchema';
 import propertySchemasIndex from '/imports/api/properties/computedPropertySchemasIndex';
 import { storedIconsSchema } from '/imports/api/icons/Icons';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
-import { InferType, TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
-import type { ComputedProperty, ComputedPropertyTypeMap } from '/imports/api/properties/Property.type';
+import { ConvertToUnion, InferType, TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
+import { Simplify } from 'type-fest';
 
-const PreComputeCreaturePropertySchema = new TypedSimpleSchema({
+type PropertyType = Exclude<keyof typeof propertySchemasIndex, 'any'>;
+
+const PreComputeCreaturePropertySchema = TypedSimpleSchema.from({
   _id: {
     type: String,
     regEx: SimpleSchema.RegEx.Id,
@@ -54,7 +56,7 @@ const PreComputeCreaturePropertySchema = new TypedSimpleSchema({
   },
 });
 
-const DenormalisedOnlyCreaturePropertySchema = new TypedSimpleSchema({
+const DenormalisedOnlyCreaturePropertySchema = TypedSimpleSchema.from({
   // Denormalised flag if this property is inactive on the sheet for any reason
   // Including being disabled, or a descendant of a disabled property
   inactive: {
@@ -131,6 +133,20 @@ const DenormalisedOnlyCreaturePropertySchema = new TypedSimpleSchema({
 
 const CreaturePropertySchema = PreComputeCreaturePropertySchema.extend(DenormalisedOnlyCreaturePropertySchema);
 
+export type CreaturePropertyTypes = {
+  [T in PropertyType]: Simplify<
+    { type: T }
+    & InferType<typeof propertySchemasIndex[T]>
+  > & Simplify<
+    Exclude<InferType<typeof CreaturePropertySchema>, 'type'>
+    & InferType<typeof ColorSchema>
+    & InferType<typeof ChildSchema>
+    & InferType<typeof SoftRemovableSchema>
+  >
+}
+
+export type CreatureProperty = ConvertToUnion<CreaturePropertyTypes>;
+
 const CreatureProperties = new Mongo.Collection<CreatureProperty>('creatureProperties');
 
 let key: keyof typeof propertySchemasIndex;
@@ -141,28 +157,11 @@ for (key in propertySchemasIndex) {
   schema.extend(ColorSchema);
   schema.extend(ChildSchema);
   schema.extend(SoftRemovableSchema);
-  // Use the any schema as a default schema for the collection
-  if (key === 'any') {
-    // @ts-expect-error don't have types for .attachSchema
-    CreatureProperties.attachSchema(schema);
-  } else {
-    // TODO remove all {selector: {type: any}} options
-    // @ts-expect-error don't have types for .attachSchema
-    CreatureProperties.attachSchema(schema, {
-      selector: { type: key }
-    });
-  }
+  // @ts-expect-error don't have types for .attachSchema
+  CreatureProperties.attachSchema(schema, {
+    selector: { type: key }
+  });
 }
-
-export type CreaturePropertyByType<T extends keyof ComputedPropertyTypeMap> =
-  ComputedProperty<T>
-  & InferType<typeof CreaturePropertySchema>
-  & InferType<typeof ColorSchema>
-  & InferType<typeof ChildSchema>
-  & InferType<typeof SoftRemovableSchema>
-
-type ConvertToUnion<T> = T[keyof T];
-export type CreatureProperty = ConvertToUnion<{ [key in keyof ComputedPropertyTypeMap]: CreaturePropertyByType<key> }>;
 
 export default CreatureProperties;
 export {

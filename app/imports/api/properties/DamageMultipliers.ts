@@ -1,7 +1,7 @@
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import VARIABLE_NAME_REGEX from '/imports/constants/VARIABLE_NAME_REGEX';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
-import type { Expand, InferType } from '/imports/api/utility/TypedSimpleSchema';
+import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 
 /*
  * DamageMultipliers are multipliers that affect how much damage is taken from
@@ -54,8 +54,8 @@ const DamageMultiplierSchema = createPropertySchema({
 
 const ComputedOnlyDamageMultiplierSchema = createPropertySchema({});
 
-export type DamageMultiplier = InferType<typeof DamageMultiplierSchema>;
-export type ComputedOnlyDamageMultiplier = InferType<typeof ComputedOnlyDamageMultiplierSchema>;
-export type ComputedDamageMultiplier = Expand<InferType<typeof DamageMultiplierSchema> & InferType<typeof ComputedOnlyDamageMultiplierSchema>>;
+const ComputedDamageMultiplierSchema = TypedSimpleSchema.from({})
+  .extend(DamageMultiplierSchema)
+  .extend(ComputedOnlyDamageMultiplierSchema);
 
-export { DamageMultiplierSchema, ComputedOnlyDamageMultiplierSchema };
+export { DamageMultiplierSchema, ComputedOnlyDamageMultiplierSchema, ComputedDamageMultiplierSchema };

@@ -1,8 +1,7 @@
-import SimpleSchema from 'simpl-schema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
 import TagTargetingSchema from '/imports/api/properties/subSchemas/TagTargetingSchema';
-import type { Expand, InferType } from '/imports/api/utility/TypedSimpleSchema';
+import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 
 const ToggleSchema = createPropertySchema({
   name: {
@@ -47,11 +46,7 @@ const ComputedOnlyToggleSchema = createPropertySchema({
   },
 });
 
-export type Toggle = InferType<typeof ToggleSchema>;
-export type ComputedOnlyToggle = InferType<typeof ComputedOnlyToggleSchema>;
-export type ComputedToggle = Expand<InferType<typeof ToggleSchema> & InferType<typeof ComputedOnlyToggleSchema>>;
-
-const ComputedToggleSchema = new SimpleSchema({})
+const ComputedToggleSchema = TypedSimpleSchema.from({})
   .extend(ComputedOnlyToggleSchema)
   .extend(ToggleSchema);
 

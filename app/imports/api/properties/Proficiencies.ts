@@ -1,7 +1,6 @@
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import TagTargetingSchema from '/imports/api/properties/subSchemas/TagTargetingSchema';
-import type { Expand, InferType } from '/imports/api/utility/TypedSimpleSchema';
 
 const ProficiencySchema = createPropertySchema({
   name: {
@@ -29,9 +28,5 @@ const ProficiencySchema = createPropertySchema({
 }).extend(TagTargetingSchema);
 
 const ComputedOnlyProficiencySchema = createPropertySchema({});
-
-export type Proficiency = InferType<typeof ProficiencySchema>;
-export type ComputedOnlyProficiency = InferType<typeof ComputedOnlyProficiencySchema>;
-export type ComputedProficiency = Expand<InferType<typeof ProficiencySchema> & InferType<typeof ComputedOnlyProficiencySchema>>;
 
 export { ProficiencySchema, ComputedOnlyProficiencySchema };

@@ -6,12 +6,12 @@ import {
   fieldToCompute,
   computedOnlyField,
 } from '/imports/api/properties/subSchemas/computedField';
-import { Definition, TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
+import { Definition, InferSchema, TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 
 // Search through the schema for keys whose type is 'fieldToCompute' etc.
 // replace the type with Object and attach extend the schema with
 // the required fields to make the computation work
-export default function createPropertySchema<T extends Definition>(definition: T): TypedSimpleSchema<T> {
+export default function createPropertySchema<D extends Definition>(definition: D): TypedSimpleSchema<InferSchema<D>> {
   const computationFields = {
     inlineCalculationFieldToCompute: [],
     computedOnlyInlineCalculationField: [],
@@ -41,7 +41,7 @@ export default function createPropertySchema<T extends Definition>(definition: T
   }
 
   // Create a schema with the edited definition
-  const schema = new TypedSimpleSchema(definition);
+  const schema = TypedSimpleSchema.from(definition);
 
   // Extend the schema with all the computation fields
   computationFields.inlineCalculationFieldToCompute.forEach(key => {

@@ -1,7 +1,7 @@
 import SimpleSchema from 'simpl-schema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
-import type { Expand, InferType } from '/imports/api/utility/TypedSimpleSchema';
+import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 
 const SpellListSchema = createPropertySchema({
   name: {
@@ -61,12 +61,8 @@ const ComputedOnlySpellListSchema = createPropertySchema({
   },
 });
 
-const ComputedSpellListSchema = new SimpleSchema({})
+const ComputedSpellListSchema = TypedSimpleSchema.from({})
   .extend(SpellListSchema)
   .extend(ComputedOnlySpellListSchema);
-
-export type SpellList = InferType<typeof SpellListSchema>;
-export type ComputedOnlySpellList = InferType<typeof ComputedOnlySpellListSchema>;
-export type ComputedSpellList = Expand<InferType<typeof SpellListSchema> & InferType<typeof ComputedOnlySpellListSchema>>;
 
 export { SpellListSchema, ComputedOnlySpellListSchema, ComputedSpellListSchema };

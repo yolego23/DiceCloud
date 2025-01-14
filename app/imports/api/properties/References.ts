@@ -1,6 +1,5 @@
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
-import type { Expand, InferType } from '/imports/api/utility/TypedSimpleSchema';
 
 const ReferenceSchema = createPropertySchema({
   ref: {
@@ -63,9 +62,5 @@ const ReferenceSchema = createPropertySchema({
 });
 
 const ComputedOnlyReferenceSchema = createPropertySchema({});
-
-export type Reference = InferType<typeof ReferenceSchema>;
-export type ComputedOnlyReference = InferType<typeof ComputedOnlyReferenceSchema>;
-export type ComputedReference = Expand<InferType<typeof ReferenceSchema> & InferType<typeof ComputedOnlyReferenceSchema>>;
 
 export { ReferenceSchema, ComputedOnlyReferenceSchema };

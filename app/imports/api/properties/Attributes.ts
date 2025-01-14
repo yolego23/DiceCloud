@@ -2,7 +2,7 @@ import SimpleSchema from 'simpl-schema';
 import VARIABLE_NAME_REGEX from '/imports/constants/VARIABLE_NAME_REGEX';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
-import { Expand, InferType, TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
+import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 
 /*
  * Attributes are numbered stats of a character
@@ -297,12 +297,8 @@ const ComputedOnlyAttributeSchema = createPropertySchema({
   },
 });
 
-const ComputedAttributeSchema = new TypedSimpleSchema({})
+const ComputedAttributeSchema = TypedSimpleSchema.from({})
   .extend(ComputedOnlyAttributeSchema)
   .extend(AttributeSchema);
-
-export type Attribute = InferType<typeof AttributeSchema>;
-export type ComputedOnlyAttribute = InferType<typeof ComputedOnlyAttributeSchema>;
-export type ComputedAttribute = Expand<InferType<typeof AttributeSchema> & InferType<typeof ComputedOnlyAttributeSchema>>;
 
 export { AttributeSchema, ComputedOnlyAttributeSchema, ComputedAttributeSchema };

@@ -2,7 +2,7 @@ import SimpleSchema from 'simpl-schema';
 import VARIABLE_NAME_REGEX from '/imports/constants/VARIABLE_NAME_REGEX';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
-import { Expand, InferType } from '/imports/api/utility/TypedSimpleSchema';
+import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 
 const ClassLevelSchema = createPropertySchema({
   name: {
@@ -36,12 +36,8 @@ const ComputedOnlyClassLevelSchema = createPropertySchema({
   },
 });
 
-const ComputedClassLevelSchema = new SimpleSchema({})
+const ComputedClassLevelSchema = TypedSimpleSchema.from({})
   .extend(ComputedOnlyClassLevelSchema)
   .extend(ClassLevelSchema);
-
-export type ClassLevel = InferType<typeof ClassLevelSchema>;
-export type ComputedOnlyClassLevel = InferType<typeof ComputedOnlyClassLevelSchema>;
-export type ComputedClassLevel = Expand<InferType<typeof ClassLevelSchema> & InferType<typeof ComputedOnlyClassLevelSchema>>;
 
 export { ClassLevelSchema, ComputedOnlyClassLevelSchema, ComputedClassLevelSchema };

@@ -1,7 +1,8 @@
 import SimpleSchema from 'simpl-schema';
 import createPropertySchema from '/imports/api/properties/subSchemas/createPropertySchema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
-import type { Expand, InferType } from '/imports/api/utility/TypedSimpleSchema';
+import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
+import { UnionToTuple } from 'type-fest';
 
 const eventOptions = {
   doActionProperty: 'Do action',
@@ -54,42 +55,18 @@ const TriggerSchema = createPropertySchema({
   },
   event: {
     type: String,
-    allowedValues: [
-      'doActionProperty',
-      'check',
-      'damageProperty',
-      'anyRest',
-      'longRest',
-      'shortRest',
-    ] as const,
+    allowedValues: Object.keys(eventOptions) as UnionToTuple<keyof typeof eventOptions>,
     defaultValue: 'doActionProperty',
   },
   // Action type
   actionPropertyType: {
     type: String,
-    allowedValues: [
-      'action',
-      'ammo',
-      'adjustment',
-      'branch',
-      'buff',
-      'buffRemover',
-      'damage',
-      'note',
-      'roll',
-      'savingThrow',
-      'spell',
-      'toggle',
-    ] as const,
+    allowedValues: Object.keys(actionPropertyTypeOptions) as UnionToTuple<keyof typeof actionPropertyTypeOptions>,
     optional: true,
   },
   timing: {
     type: String,
-    allowedValues: [
-      'before',
-      'after',
-      'afterChildren',
-    ] as const,
+    allowedValues: Object.keys(timingOptions) as UnionToTuple<keyof typeof timingOptions>,
     defaultValue: 'after',
   },
   condition: {
@@ -159,13 +136,9 @@ const ComputedOnlyTriggerSchema = createPropertySchema({
   },
 });
 
-const ComputedTriggerSchema = new SimpleSchema({})
+const ComputedTriggerSchema = TypedSimpleSchema.from({})
   .extend(TriggerSchema)
   .extend(ComputedOnlyTriggerSchema);
-
-export type Trigger = InferType<typeof TriggerSchema>;
-export type ComputedOnlyTrigger = InferType<typeof ComputedOnlyTriggerSchema>;
-export type ComputedTrigger = Expand<InferType<typeof TriggerSchema> & InferType<typeof ComputedOnlyTriggerSchema>>;
 
 export {
   TriggerSchema, ComputedOnlyTriggerSchema, ComputedTriggerSchema,

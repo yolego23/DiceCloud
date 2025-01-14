@@ -1,6 +1,6 @@
 import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 
-const ColorSchema = new TypedSimpleSchema({
+const ColorSchema = TypedSimpleSchema.from({
   color: {
     type: String,
     // match hex colors of the form #A23 or #A23f56

@@ -2,7 +2,7 @@ import SimpleSchema from 'simpl-schema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 
-const TagTargetingSchema = new TypedSimpleSchema({
+const TagTargetingSchema = TypedSimpleSchema.from({
   // True when targeting by tags instead of stats
   targetByTags: {
     type: Boolean,
