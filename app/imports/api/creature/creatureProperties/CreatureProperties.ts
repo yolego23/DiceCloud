@@ -8,8 +8,7 @@ import { storedIconsSchema } from '/imports/api/icons/Icons';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
 import { ConvertToUnion, InferType, TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 import { Simplify } from 'type-fest';
-
-type PropertyType = Exclude<keyof typeof propertySchemasIndex, 'any'>;
+import type { PropertyType } from '/imports/api/properties/PropertyType.type';
 
 const PreComputeCreaturePropertySchema = TypedSimpleSchema.from({
   _id: {

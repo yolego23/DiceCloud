@@ -14,6 +14,7 @@ import linkTypeDependencies from './buildComputation/linkTypeDependencies';
 import computeSlotQuantityFilled from './buildComputation/computeSlotQuantityFilled';
 import CreatureComputation from './CreatureComputation';
 import removeSchemaFields from './buildComputation/removeSchemaFields';
+import type { Creature } from '/imports/api/creature/creatures/Creatures';
 
 /**
  * Store index of properties
@@ -31,6 +32,7 @@ import removeSchemaFields from './buildComputation/removeSchemaFields';
 
 export default function buildCreatureComputation(creatureId: string) {
   const creature = getCreature(creatureId);
+  if (!creature) return;
   const variables = getVariables(creatureId);
   const properties = getProperties(creatureId);
   const computation = buildComputationFromProps(properties, creature, variables);
@@ -38,7 +40,7 @@ export default function buildCreatureComputation(creatureId: string) {
 }
 
 export function buildComputationFromProps(
-  properties: CreatureProperty[], creature, variables
+  properties: CreatureProperty[], creature: Creature, variables: any
 ) {
 
   const computation = new CreatureComputation(properties, creature, variables);
@@ -67,24 +69,15 @@ export function buildComputationFromProps(
   }
 
   // Process the properties one by one
-  properties.forEach(prop => {
+  computation.props.forEach(prop => {
     // The prop has been processed, it's no longer dirty
     delete prop.dirty;
 
     const computedSchema = computedOnlySchemas[prop.type];
     removeSchemaFields([computedSchema, denormSchema], prop);
 
-    // Add a place to store all the computation details
-    prop._computationDetails = {
-      calculations: [],
-      emptyCalculations: [],
-      inlineCalculations: [],
-      toggleAncestors: [],
-    };
-
     // Parse all the calculations
     parseCalculationFields(prop, computedSchemas);
-
   });
 
   // Get all the properties as a forest, with their nested set properties set

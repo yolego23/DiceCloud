@@ -3,13 +3,20 @@ import computeByType from '/imports/api/engine/computation/computeComputation/co
 import embedInlineCalculations from './utility/embedInlineCalculations';
 import { removeEmptyCalculations } from './buildComputation/parseCalculationFields';
 import path from 'ngraph.path';
+import type CreatureComputation from './CreatureComputation';
+import type { Graph, Node, NodeId } from 'ngraph.graph';
 
-export default async function computeCreatureComputation(computation) {
-  const stack = [];
+type TraversedNode = Node<any> & {
+  _visited?: boolean,
+  _visitedChildren?: boolean,
+}
+
+export default async function computeCreatureComputation(computation: CreatureComputation) {
+  const stack: (TraversedNode)[] = [];
   // Computation scope of {variableName: prop}
   const graph = computation.dependencyGraph;
   // Add all nodes to the stack
-  graph.forEachNode(node => {
+  graph.forEachNode((node: TraversedNode) => {
     node._visited = false;
     node._visitedChildren = false;
     stack.push(node)
@@ -22,7 +29,7 @@ export default async function computeCreatureComputation(computation) {
 
   // Depth first traversal of nodes
   while (stack.length) {
-    let top = stack[stack.length - 1];
+    const top = stack[stack.length - 1];
     if (top._visited) {
       // The object has already been computed, skip
       stack.pop();
@@ -45,21 +52,21 @@ export default async function computeCreatureComputation(computation) {
   }
 }
 
-async function compute(computation, node) {
+async function compute(computation: CreatureComputation, node: TraversedNode) {
   // Determine the prop's active status by its toggles
   computeToggles(computation, node);
   // Compute the property by type
   await computeByType[node.data?.type || '_variable']?.(computation, node);
 }
 
-function pushDependenciesToStack(nodeId, graph, stack, computation) {
-  graph.forEachLinkedNode(nodeId, linkedNode => {
+function pushDependenciesToStack(nodeId: NodeId, graph: Graph, stack: TraversedNode[], computation: CreatureComputation) {
+  graph.forEachLinkedNode(nodeId, (linkedNode: TraversedNode) => {
     if (linkedNode._visitedChildren && !linkedNode._visited) {
       // This is a dependency loop, find a path from the node to itself
       // and store that path as a dependency loop error
       const pather = path.nba(graph, { oriented: true });
-      let loop = [];
-      // Pather doesn't like going from a node to iteself, so find all the
+      const loop: TraversedNode[] = [];
+      // Pather doesn't like going from a node to itself, so find all the
       // paths going from the next node back to the original node
       // and return the shortest one
       graph.forEachLinkedNode(nodeId, nextNode => {
