@@ -1,19 +1,11 @@
 import SimpleSchema from 'simpl-schema';
 import STORAGE_LIMITS from '/imports/constants/STORAGE_LIMITS';
-import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
+import { InferType, TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
+import type { Simplify } from 'type-fest';
 
 export interface Reference {
   collection: string,
   id: string,
-}
-
-export interface TreeDoc {
-  _id: string,
-  root: Reference,
-  parentId?: string,
-  left: number,
-  right: number,
-  removed?: true,
 }
 
 const RefSchema = TypedSimpleSchema.from({
@@ -83,6 +75,8 @@ export const treeDocFields = {
   left: 1,
   right: 1,
 }
+
+export type TreeDoc = Simplify<{ _id: string } & InferType<typeof ChildSchema>>;
 
 export default ChildSchema;
 export { RefSchema };
