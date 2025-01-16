@@ -19,13 +19,13 @@ export default async function resolve(
 ): Promise<ResolvedResult> {
   if (!node) throw new Error('Node must be supplied');
   const factory = factories[node.parseType];
-  const handlerFunction: ResolveLevelFunction<ParseNode> = factory[fn];
   if (!factory) {
     throw new Meteor.Error(`Parse node type: ${node.parseType} not implemented`);
   }
+  const handlerFunction = getHandlerFunction(fn, factory);
   if ('resolve' in factory) {
     return factory.resolve(fn, node as any, scope, context, inputProvider, resolve);
-  } else if (fn in factory) {
+  } else if (handlerFunction) {
     return handlerFunction(node, scope, context, inputProvider, resolve);
   } else if (fn === 'reduce' && 'roll' in factory) {
     return factory.roll(node as any, scope, context, inputProvider, resolve)
@@ -33,6 +33,19 @@ export default async function resolve(
     return factory.compile(node as any, scope, context, inputProvider, resolve)
   } else {
     throw new Meteor.Error('Compile not implemented on ' + node.parseType);
+  }
+}
+
+function getHandlerFunction<T extends ParseNode>(
+  fn: ResolveLevel, factory: typeof factories[T['parseType']]
+): ResolveLevelFunction<T> | undefined {
+  if (!(fn in factory)) return;
+  if (fn === 'roll' && 'roll' in factory) {
+    return factory.roll as ResolveLevelFunction<T>;
+  } else if (fn === 'reduce' && 'reduce' in factory) {
+    return factory.reduce as ResolveLevelFunction<T>;
+  } else if (fn === 'compile' && 'compile' in factory) {
+    return factory.compile as ResolveLevelFunction<T>;
   }
 }
 
