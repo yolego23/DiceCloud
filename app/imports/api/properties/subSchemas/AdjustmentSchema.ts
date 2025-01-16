@@ -4,7 +4,7 @@ import { TypedSimpleSchema } from '/imports/api/utility/TypedSimpleSchema';
 const AdjustmentSchema = TypedSimpleSchema.from({
   _id: {
     type: String,
-    max: 17,
+    max: 32,
     autoValue() {
       if (!this.isSet) return Random.id();
     }

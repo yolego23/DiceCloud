@@ -34,7 +34,7 @@ const Docs: Mongo.Collection<Doc> & {
 const DocSchema = new SimpleSchema({
   _id: {
     type: String,
-    regEx: SimpleSchema.RegEx.Id,
+    max: 32,
   },
   name: {
     type: String,

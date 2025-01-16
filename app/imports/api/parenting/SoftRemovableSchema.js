@@ -15,7 +15,7 @@ let SoftRemovableSchema = TypedSimpleSchema.from({
   'removedWith': {
     optional: true,
     type: String,
-    regEx: SimpleSchema.RegEx.Id,
+    max: 32,
     index: 1,
   },
 });

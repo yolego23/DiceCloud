@@ -2,7 +2,7 @@ import { buildComputationFromProps } from '/imports/api/engine/computation/build
 import { assert } from 'chai';
 import computeCreatureComputation from '../../computeCreatureComputation';
 import clean from '../../utility/cleanProp.testFn';
-import { propsFromForest } from '/imports/api/properties/tests/propTestBuilder.testFn';
+import propsFromForest from '/imports/api/engine/computation/utility/propsFromForest.testFn';
 
 export default async function () {
   const computation = buildComputationFromProps(testProperties);

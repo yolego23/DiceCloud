@@ -1,5 +1,5 @@
-import { TypedSimpleSchema } from 'imports/api/utility/TypedSimpleSchema';
-import SimpleSchema from 'simpl-schema';
+type SimpleSchema = import('simpl-schema').default;
+type TypedSimpleSchema<T> = import('imports/api/utility/TypedSimpleSchema').TypedSimpleSchema<T>;
 
 declare namespace Mongo {
   interface CollectionStatic {
@@ -11,15 +11,17 @@ declare namespace Mongo {
     /**
      * Set to `true` if your document must be passed through the collection's transform to properly validate
      */
-    transform: boolean,
+    transform?: boolean,
     /**
      * Set to `true` to replace any existing schema instead of combining
      */
-    replace: boolean
+    replace?: boolean
+    selector?: any;
   }
 
-  interface Collection<T, U = T> {
-    schema?: TypedSimpleSchema<T>;
+  interface Collection<T> {
+    schema: TypedSimpleSchema<T>;
+    simpleSchema<U extends Partial<T>>(selector?: U): TypedSimpleSchema<T & U>;
     /**
      * Use this method to attach a schema to a collection created by another package,
      * such as Meteor.users. It is most likely unsafe to call this method more than

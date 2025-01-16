@@ -36,5 +36,15 @@
     "vuetify",
     "Vuex",
     "walkdown"
-  ]
+  ],
+  "javascript.preferences.importModuleSpecifier": "non-relative",
+  "javascript.preferences.importModuleSpecifierEnding": "minimal",
+  "javascript.preferences.organizeImports": {
+    "enabled": true,
+  },
+  "typescript.preferences.importModuleSpecifier": "non-relative",
+  "typescript.preferences.importModuleSpecifierEnding": "minimal",
+  "typescript.preferences.organizeImports": {
+    "enabled": true,
+  }
 }

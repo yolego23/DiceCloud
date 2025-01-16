@@ -34,7 +34,7 @@ const TagTargetingSchema = TypedSimpleSchema.from({
   },
   'extraTags.$._id': {
     type: String,
-    regEx: SimpleSchema.RegEx.Id,
+    max: 32,
     autoValue() {
       if (!this.isSet) return Random.id();
     }

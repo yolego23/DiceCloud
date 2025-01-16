@@ -1,4 +1,12 @@
+import type { CreatureProperty } from '/imports/api/creature/creatureProperties/CreatureProperties';
+import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 import { applyNestedSetProperties } from '/imports/api/parenting/parentingFunctions';
+import { cleanAndValidate } from '/imports/api/utility/TypedSimpleSchema';
+
+export type ForestProp = Partial<CreatureProperty> & {
+  type: CreatureProperty['type'];
+  children?: ForestProp[];
+}
 
 /**
  * Take a forest of props, which can have sub-props nested in children: [], and return a list of
@@ -6,13 +14,13 @@ import { applyNestedSetProperties } from '/imports/api/parenting/parentingFuncti
  * @param props 
  * @returns 
  */
-export function propsFromForest(
-  props,
+export default function propsFromForest(
+  props: ForestProp[],
   creatureId = Random.id(),
-  parentId = undefined,
+  parentId?: string,
   recursionDepth = 0
 ) {
-  const result = [];
+  const result: CreatureProperty[] = [];
   props.forEach(prop => {
     const children = prop.children;
     // Check the property has a type
@@ -32,9 +40,10 @@ export function propsFromForest(
       doc._id = Random.id();
     }
     delete doc.children;
+    const creatureProp = cleanAndValidate(CreatureProperties.simpleSchema(doc), doc);
 
     // Add the doc to the result and ancestry
-    result.push(doc);
+    result.push(creatureProp);
     if (children) {
       result.push(...propsFromForest(children, creatureId, doc._id, recursionDepth + 1));
     }

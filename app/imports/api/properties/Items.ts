@@ -73,7 +73,7 @@ const ItemSchema = createPropertySchema({
   },
   'ammoTriggerIds.before.$': {
     type: String,
-    regEx: SimpleSchema.RegEx.Id,
+    max: 32,
   },
   'ammoTriggerIds.after': {
     type: Array,
@@ -81,7 +81,7 @@ const ItemSchema = createPropertySchema({
   },
   'ammoTriggerIds.after.$': {
     type: String,
-    regEx: SimpleSchema.RegEx.Id,
+    max: 32,
   },
   'ammoTriggerIds.afterChildren': {
     type: Array,
@@ -89,7 +89,7 @@ const ItemSchema = createPropertySchema({
   },
   'ammoTriggerIds.afterChildren.$': {
     type: String,
-    regEx: SimpleSchema.RegEx.Id,
+    max: 32,
   },
 });
 

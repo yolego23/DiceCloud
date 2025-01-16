@@ -97,7 +97,7 @@ const CreatureSchema = TypedSimpleSchema.from({
   },
   'allowedLibraries.$': {
     type: String,
-    regEx: SimpleSchema.RegEx.Id,
+    max: 32,
   },
   allowedLibraryCollections: {
     type: Array,
@@ -106,7 +106,7 @@ const CreatureSchema = TypedSimpleSchema.from({
   },
   'allowedLibraryCollections.$': {
     type: String,
-    regEx: SimpleSchema.RegEx.Id,
+    max: 32,
   },
 
   // Stats that are computed and denormalised outside of recomputation
@@ -163,7 +163,7 @@ const CreatureSchema = TypedSimpleSchema.from({
   tabletopId: {
     index: 1,
     type: String,
-    regEx: SimpleSchema.RegEx.Id,
+    max: 32,
     optional: true,
   },
   initiativeRoll: {
@@ -176,17 +176,14 @@ const CreatureSchema = TypedSimpleSchema.from({
     type: CreatureSettingsSchema,
     defaultValue: {},
   },
-});
-
-CreatureSchema.extend(ColorSchema);
-CreatureSchema.extend(SharingSchema);
+})
+  .extend(ColorSchema)
+  .extend(SharingSchema);
 
 export type Creature = Simplify<{ _id: string } & InferType<typeof CreatureSchema>>;
 
 //set up the collection for creatures
 const Creatures = new Mongo.Collection<Creature>('creatures');
-
-//@ts-expect-error attachSchema not defined
 Creatures.attachSchema(CreatureSchema);
 
 export default Creatures;

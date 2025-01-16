@@ -67,7 +67,7 @@ const ComputedOnlyBuffSchema = createPropertySchema({
   },
   'appliedBy.id': {
     type: String,
-    regEx: SimpleSchema.RegEx.Id,
+    max: 32,
   },
   'appliedBy.collection': {
     type: String,

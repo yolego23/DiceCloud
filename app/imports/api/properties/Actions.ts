@@ -85,7 +85,7 @@ const ActionSchema = createPropertySchema({
   },
   'resources.itemsConsumed.$._id': {
     type: String,
-    regEx: SimpleSchema.RegEx.Id,
+    max: 32,
     autoValue() {
       if (!this.isSet) return Random.id();
     }
@@ -100,7 +100,7 @@ const ActionSchema = createPropertySchema({
   },
   'resources.itemsConsumed.$.itemId': {
     type: String,
-    regEx: SimpleSchema.RegEx.Id,
+    max: 32,
     optional: true,
   },
   'resources.attributesConsumed': {
@@ -113,7 +113,7 @@ const ActionSchema = createPropertySchema({
   },
   'resources.attributesConsumed.$._id': {
     type: String,
-    regEx: SimpleSchema.RegEx.Id,
+    max: 32,
     autoValue() {
       if (!this.isSet) return Random.id();
     }
@@ -137,7 +137,7 @@ const ActionSchema = createPropertySchema({
   },
   'resources.conditions.$._id': {
     type: String,
-    regEx: SimpleSchema.RegEx.Id,
+    max: 32,
     autoValue() {
       if (!this.isSet) return Random.id();
     }

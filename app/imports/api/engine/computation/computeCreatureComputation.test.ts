@@ -2,12 +2,18 @@ import computeCreatureComputation from './computeCreatureComputation';
 import { buildComputationFromProps } from './buildCreatureComputation';
 import { assert } from 'chai';
 import CreatureProperties, { CreatureProperty } from '/imports/api/creature/creatureProperties/CreatureProperties';
-import computeTests from './computeComputation/tests/index';
-import Creatures, { Creature } from 'imports/api/creature/creatures/Creatures';
+import computeTests from '/imports/api/engine/computation/computeComputation/tstFns';
+import Creatures from '/imports/api/creature/creatures/Creatures';
+import { cleanAndValidate } from '/imports/api/utility/TypedSimpleSchema';
+import { createTestCreature } from '/imports/api/engine/action/functions/actionEngineTest.testFn';
 
 describe('Compute computation', function () {
-  it('Computes something at all', function () {
-    const creature: Creature = Creatures.schema.clean({});
+  it('Computes something at all', async function () {
+    const creature = cleanAndValidate(Creatures.simpleSchema(), {
+      owner: Random.id(),
+      readers: [],
+      writers: [],
+    });
     const computation = buildComputationFromProps(testProperties, creature, {});
     computeCreatureComputation(computation);
     assert.exists(computation);
@@ -30,8 +36,8 @@ const testProperties = [
   }),
 ];
 
-function clean(prop: Partial<CreatureProperty>): CreatureProperty {
-  // @ts-expect-error don't have types for .simpleSchema
+function clean(prop: Partial<CreatureProperty>) {
+  prop.root ??= { collection: 'creatures', id: 'testCreature' };
   const schema = CreatureProperties.simpleSchema(prop);
-  return schema.clean(prop);
+  return cleanAndValidate(schema, prop);
 }

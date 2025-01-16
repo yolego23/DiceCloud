@@ -11,7 +11,7 @@ export interface Reference {
 const RefSchema = TypedSimpleSchema.from({
   id: {
     type: String,
-    regEx: SimpleSchema.RegEx.Id,
+    max: 32,
   },
   collection: {
     type: String,
@@ -25,7 +25,7 @@ const ChildSchema = TypedSimpleSchema.from({
   },
   'root.id': {
     type: String,
-    regEx: SimpleSchema.RegEx.Id,
+    max: 32,
     index: 1,
   },
   'root.collection': {
@@ -36,7 +36,7 @@ const ChildSchema = TypedSimpleSchema.from({
   // Undefined parent id implies the root is the parent
   parentId: {
     type: String,
-    regEx: SimpleSchema.RegEx.Id,
+    max: 32,
     optional: true,
   },
   /**

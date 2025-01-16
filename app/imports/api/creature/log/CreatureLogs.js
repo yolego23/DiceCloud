@@ -192,7 +192,7 @@ const logRoll = new ValidatedMethod({
     },
     creatureId: {
       type: String,
-      regEx: SimpleSchema.RegEx.Id,
+      max: 32,
       optional: true,
     },
   }).validator(),

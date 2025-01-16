@@ -18,6 +18,9 @@ export class TypedSimpleSchema<T> extends SimpleSchema {
   static from<D extends Definition>(definition: D): TypedSimpleSchema<InferSchema<D>> {
     return new TypedSimpleSchema(definition);
   }
+  clean(...args: Parameters<SimpleSchema['clean']>): unknown {
+    return super.clean(...args);
+  }
   // Extending the schema with another schema &'s their definitions
   // In some cases, this is not strictly accurate, use with caution
   extend<U>(otherSchema: TypedSimpleSchema<U>): TypedSimpleSchema<Simplify<T & U>> {
@@ -25,9 +28,15 @@ export class TypedSimpleSchema<T> extends SimpleSchema {
   }
 }
 
-// It cannot be a method due to https://github.com/microsoft/TypeScript/issues/36931.
-export function validate<T extends Definition>(schema: TypedSimpleSchema<T>, value: unknown): asserts value is T {
+// Assertions cannot be methods due to https://github.com/microsoft/TypeScript/issues/36931.
+export function validate<T>(schema: TypedSimpleSchema<T>, value: unknown): asserts value is T {
   schema.validate(value);
+}
+
+export function cleanAndValidate<T extends { _id?: string }>(schema: TypedSimpleSchema<T>, doc: Partial<T>): T {
+  const cleanDoc = schema.clean(doc);
+  validate(schema, cleanDoc);
+  return cleanDoc;
 }
 
 // If this type emerges anywhere in calculations, congratulations!
@@ -62,7 +71,7 @@ export type InferField<Def extends Definition, Key extends keyof Def> =
   ? ArrayMarker extends InferTypeInner<Typ>
   ? Array<InferField<Def, `${Key}.$`>>
   : ObjectMarker extends InferTypeInner<Typ>
-  ? { [L in keyof Def as L extends `${Key}.${infer SubKey}` ? SubKey extends `${string}.${string}` ? never : SubKey : never]: InferOptional<Def, L, InferField<Def, L>> }
+  ? MakeUndefinedOptional<{ [L in keyof Def as L extends `${Key}.${infer SubKey}` ? SubKey extends `${string}.${string}` ? never : SubKey : never]: InferOptional<Def, L, InferField<Def, L>> }>
   : Def[Key] extends { allowedValues: infer Allowed extends string[] } ? InferOptional<Def, Key, InferEnum<Allowed>>
   : Def[Key] extends { type: 'fieldToCompute' } ? FieldToCalculate
   : Def[Key] extends { type: 'computedOnlyField' } ? CalculatedOnlyField

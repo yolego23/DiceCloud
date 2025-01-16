@@ -247,7 +247,7 @@ const ComputedOnlyAttributeSchema = createPropertySchema({
   },
   'damageTriggerIds.before.$': {
     type: String,
-    regEx: SimpleSchema.RegEx.Id,
+    max: 32,
   },
   'damageTriggerIds.after': {
     type: Array,
@@ -255,7 +255,7 @@ const ComputedOnlyAttributeSchema = createPropertySchema({
   },
   'damageTriggerIds.after.$': {
     type: String,
-    regEx: SimpleSchema.RegEx.Id,
+    max: 32,
   },
   'damageTriggerIds.afterChildren': {
     type: Array,
@@ -263,7 +263,7 @@ const ComputedOnlyAttributeSchema = createPropertySchema({
   },
   'damageTriggerIds.afterChildren.$': {
     type: String,
-    regEx: SimpleSchema.RegEx.Id,
+    max: 32,
   },
   // Triggers that fire when this property is used to make a check
   'checkTriggerIds': {
@@ -277,7 +277,7 @@ const ComputedOnlyAttributeSchema = createPropertySchema({
   },
   'checkTriggerIds.before.$': {
     type: String,
-    regEx: SimpleSchema.RegEx.Id,
+    max: 32,
   },
   'checkTriggerIds.after': {
     type: Array,
@@ -285,7 +285,7 @@ const ComputedOnlyAttributeSchema = createPropertySchema({
   },
   'checkTriggerIds.after.$': {
     type: String,
-    regEx: SimpleSchema.RegEx.Id,
+    max: 32,
   },
   'checkTriggerIds.afterChildren': {
     type: Array,
@@ -293,7 +293,7 @@ const ComputedOnlyAttributeSchema = createPropertySchema({
   },
   'checkTriggerIds.afterChildren.$': {
     type: String,
-    regEx: SimpleSchema.RegEx.Id,
+    max: 32,
   },
 });
 

@@ -34,7 +34,8 @@ export default function buildCreatureComputation(creatureId: string) {
   const creature = getCreature(creatureId);
   if (!creature) {
     throw new Meteor.Error('not-found',
-      'Build computation failed, the creature was not found'
+      'Build computation failed, the creature was not found.' +
+      '\nid: ' + creatureId
     );
   }
   const variables = getVariables(creatureId);

@@ -1,4 +1,3 @@
-import { Mongo } from 'meteor/mongo';
 import SimpleSchema from 'simpl-schema';
 import ColorSchema from '/imports/api/properties/subSchemas/ColorSchema';
 import ChildSchema from '/imports/api/parenting/ChildSchema';
@@ -13,7 +12,7 @@ import type { PropertyType } from '/imports/api/properties/PropertyType.type';
 const PreComputeCreaturePropertySchema = TypedSimpleSchema.from({
   _id: {
     type: String,
-    regEx: SimpleSchema.RegEx.Id,
+    max: 32,
   },
   _migrationError: {
     type: String,
@@ -44,7 +43,7 @@ const PreComputeCreaturePropertySchema = TypedSimpleSchema.from({
   // Reference to the library node that this property was copied from
   libraryNodeId: {
     type: String,
-    regEx: SimpleSchema.RegEx.Id,
+    max: 32,
     optional: true,
   },
   // Fill more than one quantity in a slot, like feats and ability score
@@ -87,7 +86,7 @@ const DenormalisedOnlyCreaturePropertySchema = TypedSimpleSchema.from({
   },
   deactivatingToggleId: {
     type: String,
-    regEx: SimpleSchema.RegEx.Id,
+    max: 32,
     optional: true,
     removeBeforeCompute: true,
   },
@@ -103,7 +102,7 @@ const DenormalisedOnlyCreaturePropertySchema = TypedSimpleSchema.from({
   },
   'triggerIds.before.$': {
     type: String,
-    regEx: SimpleSchema.RegEx.Id,
+    max: 32,
   },
   'triggerIds.after': {
     type: Array,
@@ -111,7 +110,7 @@ const DenormalisedOnlyCreaturePropertySchema = TypedSimpleSchema.from({
   },
   'triggerIds.after.$': {
     type: String,
-    regEx: SimpleSchema.RegEx.Id,
+    max: 32,
   },
   'triggerIds.afterChildren': {
     type: Array,
@@ -119,7 +118,7 @@ const DenormalisedOnlyCreaturePropertySchema = TypedSimpleSchema.from({
   },
   'triggerIds.afterChildren.$': {
     type: String,
-    regEx: SimpleSchema.RegEx.Id,
+    max: 32,
   },
   // When this is true on any property, the creature needs to be recomputed
   dirty: {
@@ -156,7 +155,6 @@ for (key in propertySchemasIndex) {
   schema.extend(ColorSchema);
   schema.extend(ChildSchema);
   schema.extend(SoftRemovableSchema);
-  // @ts-expect-error don't have types for .attachSchema
   CreatureProperties.attachSchema(schema, {
     selector: { type: key }
   });

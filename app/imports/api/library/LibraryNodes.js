@@ -23,7 +23,7 @@ let LibraryNodes = new Mongo.Collection('libraryNodes');
 let LibraryNodeSchema = new SimpleSchema({
   _id: {
     type: String,
-    regEx: SimpleSchema.RegEx.Id,
+    max: 32,
   },
   type: {
     type: String,

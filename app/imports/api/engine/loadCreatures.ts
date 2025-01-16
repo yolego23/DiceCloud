@@ -34,6 +34,13 @@ export function loadCreature(creatureId: string, subscription: Tracker.Computati
   // logLoadedCreatures()
 }
 
+export function unloadAllCreatures() {
+  loadedCreatures.forEach((creature, id) => {
+    creature.stop();
+    loadedCreatures.delete(id);
+  });
+}
+
 function unloadCreature(creatureId: string, subscription: Tracker.Computation) {
   if (!creatureId) throw 'creatureId is required';
   const creature = loadedCreatures.get(creatureId);
@@ -86,20 +93,20 @@ export function getPropertiesOfType<T extends PropertyType>(creatureId: string, 
   const creature = loadedCreatures.get(creatureId);
   if (creature) {
     const props = Array.from(creature.properties.values())
-      .filter(prop => !prop.removed && prop.type === propType)
+      .filter((prop): prop is CreaturePropertyTypes[T] => !prop.removed && prop.type === propType)
       .sort((a, b) => a.left - b.left);
-    return EJSON.clone(props) as unknown as CreaturePropertyTypes[T][];
+    return EJSON.clone(props);
   }
   // console.time(`Cache miss on creature properties: ${creatureId}`)
-  const props = CreatureProperties.find({
+  const props: CreaturePropertyTypes[T][] = CreatureProperties.find({
     'root.id': creatureId,
     'removed': { $ne: true },
-    'type': propType,
+    'type': propType as any,
   }, {
     sort: { left: 1 },
-  }).fetch();
+  }).fetch() as unknown as CreaturePropertyTypes[T][];
   // console.timeEnd(`Cache miss on creature properties: ${creatureId}`);
-  return props as unknown as CreaturePropertyTypes[T][];
+  return props;
 }
 
 /**
@@ -267,6 +274,8 @@ class LoadedCreature {
     Tracker.nonreactive(() => {
       self.subs = new Set([sub]);
       const compute = debounce(Meteor.bindEnvironment(() => {
+        // It's possible that the creature was unloaded before we get around to computing it
+        if (!loadedCreatures.has(creatureId)) return;
         computeCreature(creatureId);
       }), COMPUTE_DEBOUNCE_TIME);
 

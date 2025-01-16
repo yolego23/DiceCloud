@@ -206,7 +206,7 @@ Meteor.publish('library', function (libraryId) {
 let libraryIdSchema = new SimpleSchema({
   libraryId: {
     type: String,
-    regEx: SimpleSchema.RegEx.Id,
+    max: 32,
   },
 });
 
@@ -254,7 +254,7 @@ Meteor.publish('libraryNodes', function (libraryId, extraFields) {
 const nodeIdSchema = new SimpleSchema({
   libraryNodeId: {
     type: String,
-    regEx: SimpleSchema.RegEx.Id,
+    max: 32,
   },
 });
 

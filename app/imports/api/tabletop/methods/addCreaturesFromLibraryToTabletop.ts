@@ -22,11 +22,11 @@ const addCreaturesFromLibraryToTabletop = new ValidatedMethod({
     },
     'libraryNodeIds.$': {
       type: String,
-      regEx: SimpleSchema.RegEx.Id,
+      max: 32,
     },
     tabletopId: {
       type: String,
-      regEx: SimpleSchema.RegEx.Id,
+      max: 32,
     },
   }).validator(),
 

@@ -52,7 +52,7 @@ const insertPropertyAsChildOfTag = new ValidatedMethod({
     },
     creatureId: {
       type: String,
-      regEx: SimpleSchema.RegEx.Id,
+      max: 32,
     },
     tag: {
       type: String,

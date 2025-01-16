@@ -1,36 +1,42 @@
-import { buildComputationFromProps } from '/imports/api/engine/computation/buildCreatureComputation';
 import { assert } from 'chai';
-import computeCreatureComputation from '../../computeCreatureComputation';
-import clean from '../../utility/cleanProp.testFn';
+import computeCreatureComputation from '/imports/api/engine/computation/computeCreatureComputation';
+import buildTestComputation from './buildTestComputation';
+import type { ForestProp } from '/imports/api/engine/computation/utility/propsFromForest.testFn';
+import { CreaturePropertyTypes } from '/imports/api/creature/creatureProperties/CreatureProperties';
 
 export default async function () {
-  const computation = buildComputationFromProps(testProperties);
+  const computation = buildTestComputation({
+    _id: 'testCreatureId',
+    props: testProperties,
+  });
   await computeCreatureComputation(computation);
 
-  const prop = computation.propsById['actionId'];
-  assert.equal(prop.summary.value, 'test summary 3 without referencing anything 7');
-  assert.equal(prop.description.value, 'test description 12 with reference 0.25 prop');
-  assert.equal(prop.uses.value, 7);
+  const prop = computation.propsById['actionId'] as CreaturePropertyTypes['action'];
+  assert.equal(prop.summary?.value, 'test summary 3 without referencing anything 7');
+  assert.equal(prop.description?.value, 'test description 12 with reference 0.25 prop');
+  assert.equal(prop.uses?.value, 7);
   assert.equal(prop.usesLeft, 2);
 
-  const rolled = computation.propsById['rolledDescriptionId'];
-  assert.equal(rolled.summary.value, 'test roll gets compiled 8 properly');
+  const rolled = computation.propsById['rolledDescriptionId'] as CreaturePropertyTypes['action'];
+  assert.equal(rolled.summary?.value, 'test roll gets compiled 8 properly');
 
   const itemConsumed = prop.resources.itemsConsumed[0];
-  assert.equal(itemConsumed.quantity.value, 3);
+  assert.exists(itemConsumed);
+  assert.equal(itemConsumed.quantity?.value, 3);
   assert.equal(itemConsumed.available, 27);
   assert.equal(itemConsumed.itemName, 'Arrow');
-  assert.equal(itemConsumed.itemIcon, 'itemIcon');
-  assert.equal(itemConsumed.itemColor, 'itemColor');
+  assert.equal(itemConsumed.itemIcon?.name, 'itemIcon');
+  assert.equal(itemConsumed.itemColor, '#fff');
 
   const attConsumed = prop.resources.attributesConsumed[0];
-  assert.equal(attConsumed.quantity.value, 4);
+  assert.exists(attConsumed);
+  assert.equal(attConsumed.quantity?.value, 4);
   assert.equal(attConsumed.available, 9);
   assert.equal(attConsumed.statName, 'Resource Var');
 }
 
-var testProperties = [
-  clean({
+const testProperties: ForestProp[] = [
+  {
     _id: 'actionId',
     type: 'action',
     summary: {
@@ -55,6 +61,7 @@ var testProperties = [
           calculation: 'resourceConsumedQuantity'
         }
       }],
+      conditions: [],
     },
     uses: {
       calculation: 'nonExistentProperty + 7',
@@ -62,8 +69,8 @@ var testProperties = [
     usesUsed: 5,
     left: 1,
     right: 2,
-  }),
-  clean({
+  },
+  {
     _id: 'rolledDescriptionId',
     type: 'action',
     summary: {
@@ -71,9 +78,9 @@ var testProperties = [
     },
     left: 3,
     right: 4,
-  }),
-  clean({
-    _id: 'numItemsConumedId',
+  },
+  {
+    _id: 'numItemsConsumedId',
     type: 'attribute',
     variableName: 'itemConsumedQuantity',
     baseValue: {
@@ -81,9 +88,9 @@ var testProperties = [
     },
     left: 5,
     right: 6,
-  }),
-  clean({
-    _id: 'numResourceConumedId',
+  },
+  {
+    _id: 'numResourceConsumedId',
     type: 'attribute',
     variableName: 'resourceConsumedQuantity',
     baseValue: {
@@ -91,8 +98,8 @@ var testProperties = [
     },
     left: 7,
     right: 8,
-  }),
-  clean({
+  },
+  {
     _id: 'resourceVarId',
     name: 'Resource Var',
     type: 'attribute',
@@ -102,8 +109,8 @@ var testProperties = [
     },
     left: 9,
     right: 10,
-  }),
-  clean({
+  },
+  {
     _id: 'inlineRefResourceId',
     type: 'attribute',
     variableName: 'inlineRef',
@@ -112,15 +119,15 @@ var testProperties = [
     },
     left: 11,
     right: 12,
-  }),
-  clean({
+  },
+  {
     _id: 'arrowId',
     type: 'item',
     name: 'Arrow',
     quantity: 27,
-    icon: 'itemIcon',
-    color: 'itemColor',
+    icon: { name: 'itemIcon', shape: 'itemIconShape' },
+    color: '#fff',
     left: 13,
     right: 14,
-  }),
+  },
 ];
