@@ -11,7 +11,7 @@ export type ComputedOnlyInlineCalculationField = {
   text?: string,
   hash?: number,
   value?: string,
-  inlineCalculations: CalculatedField[],
+  inlineCalculations?: CalculatedField[],
 }
 
 // Get schemas that apply fields directly so they can be gracefully extended

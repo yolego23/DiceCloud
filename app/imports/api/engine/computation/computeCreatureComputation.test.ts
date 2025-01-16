@@ -1,19 +1,21 @@
 import computeCreatureComputation from './computeCreatureComputation';
 import { buildComputationFromProps } from './buildCreatureComputation';
 import { assert } from 'chai';
-import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
+import CreatureProperties, { CreatureProperty } from '/imports/api/creature/creatureProperties/CreatureProperties';
 import computeTests from './computeComputation/tests/index';
+import Creatures, { Creature } from 'imports/api/creature/creatures/Creatures';
 
-describe('Compute compuation', function () {
+describe('Compute computation', function () {
   it('Computes something at all', function () {
-    let computation = buildComputationFromProps(testProperties);
+    const creature: Creature = Creatures.schema.clean({});
+    const computation = buildComputationFromProps(testProperties, creature, {});
     computeCreatureComputation(computation);
     assert.exists(computation);
   });
   computeTests.forEach(test => it(test.text, test.fn));
 });
 
-var testProperties = [
+const testProperties = [
   clean({
     _id: 'attributeId123',
     type: 'attribute',
@@ -28,7 +30,8 @@ var testProperties = [
   }),
 ];
 
-function clean(prop) {
-  let schema = CreatureProperties.simpleSchema(prop);
+function clean(prop: Partial<CreatureProperty>): CreatureProperty {
+  // @ts-expect-error don't have types for .simpleSchema
+  const schema = CreatureProperties.simpleSchema(prop);
   return schema.clean(prop);
 }

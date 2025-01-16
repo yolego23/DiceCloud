@@ -4,7 +4,7 @@ import getEffectivePropTags from '/imports/api/engine/computation/utility/getEff
 import type { Creature } from '/imports/api/creature/creatures/Creatures';
 import type { CreatureProperty } from '/imports/api/creature/creatureProperties/CreatureProperties';
 
-type ComputationProperty = CreatureProperty & {
+export type ComputationProperty = CreatureProperty & {
   _computationDetails: {
     calculations: any[],
     emptyCalculations: any[],

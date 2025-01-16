@@ -10,7 +10,7 @@ export type FieldToCalculate = {
 
 export type CalculatedOnlyField = {
   value?: ConstantValueType;
-  valueNode: ParseNode;
+  valueNode?: ParseNode;
   effectIds?: string[];
   proficiencyIds?: string[];
   unaffected?: ConstantValueType;

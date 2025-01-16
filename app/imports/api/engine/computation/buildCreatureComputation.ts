@@ -32,7 +32,11 @@ import type { Creature } from '/imports/api/creature/creatures/Creatures';
 
 export default function buildCreatureComputation(creatureId: string) {
   const creature = getCreature(creatureId);
-  if (!creature) return;
+  if (!creature) {
+    throw new Meteor.Error('not-found',
+      'Build computation failed, the creature was not found'
+    );
+  }
   const variables = getVariables(creatureId);
   const properties = getProperties(creatureId);
   const computation = buildComputationFromProps(properties, creature, variables);
@@ -81,7 +85,7 @@ export function buildComputationFromProps(
   });
 
   // Get all the properties as a forest, with their nested set properties set
-  const forest = applyNestedSetProperties(properties);
+  const forest = applyNestedSetProperties(computation.props);
 
   // Walk the property trees computing things that need to be inherited
   walkDown(forest.trees, node => {
@@ -98,7 +102,7 @@ export function buildComputationFromProps(
   linkInventory(forest, dependencyGraph);
 
   // Link functions that require the above to be complete
-  properties.forEach(prop => {
+  computation.props.forEach(prop => {
     linkTypeDependencies(dependencyGraph, prop, computation);
     linkCalculationDependencies(dependencyGraph, prop, computation);
   });
