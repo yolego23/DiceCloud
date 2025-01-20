@@ -169,6 +169,37 @@ const ComputedOnlySkillSchema = createPropertySchema({
     type: Number,
     optional: true,
   },
+
+  // Triggers that fire when this property is used to make a check
+  'checkTriggerIds': {
+    type: Object,
+    optional: true,
+    removeBeforeCompute: true,
+  },
+  'checkTriggerIds.before': {
+    type: Array,
+    optional: true,
+  },
+  'checkTriggerIds.before.$': {
+    type: String,
+    max: 32,
+  },
+  'checkTriggerIds.after': {
+    type: Array,
+    optional: true,
+  },
+  'checkTriggerIds.after.$': {
+    type: String,
+    max: 32,
+  },
+  'checkTriggerIds.afterChildren': {
+    type: Array,
+    optional: true,
+  },
+  'checkTriggerIds.afterChildren.$': {
+    type: String,
+    max: 32,
+  },
 })
 
 const ComputedSkillSchema = TypedSimpleSchema.from({})

@@ -4,7 +4,8 @@ import {
   createTestCreature,
   getRandomIds,
   removeAllCreaturesAndProps,
-  runActionById
+  runActionById,
+  TestCreature
 } from '/imports/api/engine/action/functions/actionEngineTest.testFn';
 import CreatureProperties from '/imports/api/creature/creatureProperties/CreatureProperties';
 
@@ -55,7 +56,7 @@ const propsWithTriggers = ([
   return prop;
 });
 
-const actionTestCreature = {
+const actionTestCreature: TestCreature = {
   _id: creatureId,
   props: propsWithTriggers.map(prop => [
     // Props with triggers
@@ -96,7 +97,7 @@ const actionTestCreature = {
   ]).flat(),
 }
 
-const actionTargetCreature = {
+const actionTargetCreature: TestCreature = {
   _id: targetCreatureId,
   props: [
     {
@@ -108,7 +109,7 @@ const actionTargetCreature = {
   ]
 }
 
-const actionTargetCreature2 = {
+const actionTargetCreature2: TestCreature = {
   _id: targetCreature2Id,
   props: [
     {
@@ -173,7 +174,7 @@ describe('Triggers', function () {
     for (const log of expectedLogs) try {
       const type = log.type;
       const actionProp = CreatureProperties.findOne(idMap[type]);
-      assert.deepEqual(actionProp.triggerIds, {
+      assert.deepEqual(actionProp?.triggerIds, {
         before: [idMap[type + 'Before']],
         after: [idMap[type + 'After']],
         afterChildren: [idMap[type + 'AfterChildren']],
@@ -199,5 +200,45 @@ describe('Triggers', function () {
       console.error(`failed when running ${log.type}`);
       throw e
     }
+  });
+
+  it('Targets all properties when no tags are specified', async function () {
+    const [creatureId, actionId, triggerId] = getRandomIds(3);
+    const creature: TestCreature = {
+      _id: creatureId,
+      props: [
+        {
+          _id: actionId,
+          type: 'action',
+          name: 'Action',
+          children: [{
+            type: 'note',
+            summary: { text: 'note summary {1 + 2}' }
+          }]
+        }, {
+          _id: triggerId,
+          type: 'trigger',
+          targetTags: [],
+          name: 'Before Trigger',
+          event: 'doActionProperty',
+          actionPropertyType: 'action',
+          timing: 'before',
+        }
+      ],
+    };
+    await createTestCreature(creature);
+    const action = await runActionById(actionId, [creature._id]);
+    const actionProp = CreatureProperties.findOne(actionId);
+    assert.exists(actionProp);
+    assert.deepEqual(actionProp?.triggerIds, {
+      before: [triggerId],
+    });
+    assert.deepEqual(allLogContent(action), [{
+      name: 'Before Trigger',
+    }, {
+      name: 'Action',
+    }, {
+      value: 'note summary 3',
+    }]);
   });
 });
