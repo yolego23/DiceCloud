@@ -11,10 +11,11 @@ import { CalculatedField } from '/imports/api/properties/subSchemas/computedFiel
 import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
 import { EngineAction } from '/imports/api/engine/action/EngineActions';
 import ResolveLevel from '/imports/parser/types/ResolveLevel';
+import constant from '/imports/parser/parseTree/constant';
 
 export default async function recalculateCalculation(
   calcObj: CalculatedField,
-  action,
+  action: EngineAction,
   parseLevel: ResolveLevel = 'reduce',
   userInput: InputProvider,
 ) {
@@ -34,11 +35,11 @@ export default async function recalculateCalculation(
   // Apply all the effects and proficiencies
   aggregateCalculationEffects(
     calcObj,
-    id => getSingleProperty(action.creatureId, id)
+    (id: string) => getSingleProperty(action.creatureId, id)
   );
   aggregateCalculationProficiencies(
     calcObj,
-    id => getSingleProperty(action.creatureId, id),
+    (id: string) => getSingleProperty(action.creatureId, id),
     scope['proficiencyBonus']?.value || 0
   );
 
@@ -61,12 +62,13 @@ export async function rollAndReduceCalculation(
   if (!calcObj) throw new Error('calcObj is required');
   const context = new Context();
   const scope = await getEffectiveActionScope(action);
+
   // Compile
-  recalculateCalculation(calcObj, action, 'compile', userInput);
-  const compiled = calcObj.valueNode;
+  await recalculateCalculation(calcObj, action, 'compile', userInput);
+  const compiled = calcObj.valueNode ?? constant.create({ value: 0 });
 
   // Roll
-  const { result: rolled } = await resolve('roll', calcObj.valueNode, scope, context, userInput);
+  const { result: rolled } = await resolve('roll', compiled, scope, context, userInput);
 
   // Reduce
   const { result: reduced } = await resolve('reduce', rolled, scope, context, userInput);

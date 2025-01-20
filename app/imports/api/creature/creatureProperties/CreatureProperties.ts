@@ -147,14 +147,21 @@ export type CreatureProperty = ConvertToUnion<CreaturePropertyTypes>;
 
 const CreatureProperties = new Mongo.Collection<CreatureProperty>('creatureProperties');
 
+const genericCreaturePropertySchema = TypedSimpleSchema.from({})
+  .extend(CreaturePropertySchema)
+  .extend(ColorSchema)
+  .extend(ChildSchema)
+  .extend(SoftRemovableSchema);
+
+// Attach the default schema
+CreatureProperties.attachSchema(genericCreaturePropertySchema);
+
+// Attach the schemas for each type
 let key: keyof typeof propertySchemasIndex;
 for (key in propertySchemasIndex) {
-  const schema = new SimpleSchema({});
-  schema.extend(propertySchemasIndex[key]);
-  schema.extend(CreaturePropertySchema);
-  schema.extend(ColorSchema);
-  schema.extend(ChildSchema);
-  schema.extend(SoftRemovableSchema);
+  const schema = TypedSimpleSchema.from({})
+    .extend(propertySchemasIndex[key])
+    .extend(genericCreaturePropertySchema)
   CreatureProperties.attachSchema(schema, {
     selector: { type: key }
   });
