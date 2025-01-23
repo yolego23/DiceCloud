@@ -158,6 +158,10 @@ const CreatureSchema = TypedSimpleSchema.from({
     blackbox: true,
     optional: true,
   },
+  lastComputedAt: {
+    type: Date,
+    optional: true,
+  },
 
   // Tabletop
   tabletopId: {
