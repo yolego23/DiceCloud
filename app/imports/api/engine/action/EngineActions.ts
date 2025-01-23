@@ -130,7 +130,6 @@ const ActionSchema = new SimpleSchema({
   },
 });
 
-// @ts-expect-error Collections2 lacks TypeScript support
 EngineActions.attachSchema(ActionSchema);
 
 export default EngineActions;

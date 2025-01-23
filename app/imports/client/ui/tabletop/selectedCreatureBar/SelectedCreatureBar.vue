@@ -30,6 +30,7 @@
           transition: 'opacity 0.2s ease',
         }"
         :model="selectedProp"
+        :targets="targets"
         data-id="tabletop-action-card"
         @close-menu="menuOpen = false"
         @dialog-opened="menuOpen = false"
@@ -185,6 +186,10 @@ export default {
     creatureId: {
       type: String,
       default: undefined,
+    },
+    targets: {
+      type: Array,
+      required: true,
     },
   },
   data() {
