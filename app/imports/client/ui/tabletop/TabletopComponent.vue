@@ -8,8 +8,8 @@
     >
       <v-row
         dense
-        class="initiative-row flex-grow-0"
-        style="flex-wrap: nowrap; overflow-x: auto; padding-bottom: 50px; min-width: 200px;"
+        class="initiative-row flex-grow-0 overflow-x-auto"
+        style="flex-wrap: nowrap; padding-bottom: 64px; min-width: 200px;"
         @wheel="transformScroll($event)"
       >
         <v-btn
@@ -69,7 +69,7 @@
       </v-row>
       <div
         class="d-flex align-stretch"
-        style="max-height: calc(100vh - 364px);"
+        style="max-height: calc(100vh - 364px); margin-top: -24px;"
       >
         <v-spacer />
         <tabletop-log-stream
@@ -188,9 +188,12 @@ export default {
           targetIds: this.targets,
           $store: this.$store,
           elementId: 'tabletop-action-card',
+          callback: action => action?._id || this.activeActionId,
         }).catch((e) => {
           console.error(e);
           snackbar({ text: e.message || e.reason || e.toString() });
+        }).finally(() => {
+          this.doActionLoading = false;
         });
         this.$refs.selectedCreatureBar.selectedIcon = undefined;
       }

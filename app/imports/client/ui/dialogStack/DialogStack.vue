@@ -65,7 +65,7 @@
   // Use in combination with browser's animation speed override to do slow-mod debugging
   const animationSpeed = 1;
 
-  const unsizedDialogs = new Set(['image-preview-dialog']);
+  const unsizedDialogs = new Set(['image-preview-dialog', 'action-dialog']);
 
   export default {
     components: {
@@ -129,7 +129,7 @@
         const num = length - 1;
         const left = (num - index) * -OFFSET;
         const top = (num - index) * -OFFSET;
-        return `left: calc(${left}px + 50%); top: calc(${top}px + 50%)`;
+        return `left: calc(${left}px + 50%); top: calc(${top}px + 50%);${index < num ? ' filter: brightness(0.7);': ''}`;
       },
       getTopElementByDataId(elementId, offset = 0){
         let stackLength = this.$store.state.dialogStack.dialogs.length - offset;
@@ -166,7 +166,16 @@
 
         // Instantly mock the source
         target.style.transition = 'none';
-        mockElement({ source, target });
+        // If we are using unsized dialogs, first let it layout with no opacity, then mock and
+        // carry on, otherwise it has no size
+        if (target.classList.contains('unsized-dialog')) {
+          target.style.opacity = '0';
+          await new Promise(requestAnimationFrame);
+          mockElement({ source, target });
+          target.style.opacity = '1';
+        } else {
+          mockElement({ source, target });
+        }
 
         // Wait one frame before hiding the source so we know our mock is in place
         await new Promise(requestAnimationFrame);

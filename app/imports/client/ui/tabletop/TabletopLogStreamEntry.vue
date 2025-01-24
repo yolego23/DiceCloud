@@ -1,7 +1,10 @@
 <template lang="html">
-  <div class="pa-2 pt-0 my-2 stream-entry">
+  <div
+    class="pa-2 pt-0 my-1 rounded-sm"
+    :data-id="model.actionId"
+  >
     <v-list-item
-      v-if="model.creatureId"
+      v-if="model.creatureId && creature"
       dense
       class="pl-0"
     >
@@ -64,9 +67,3 @@ export default {
 }
 </script>
 
-<style lang="css" scoped>
-.stream-entry {
-  background-color: hsl(0deg 0% 50% / 0.05);
-  border-radius: 2px;
-}
-</style>

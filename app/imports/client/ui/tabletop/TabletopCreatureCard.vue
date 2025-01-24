@@ -28,7 +28,7 @@
         :key="bar._id"
         :model="bar"
         :height="4"
-        style="opacity: 0.7; margin-top: 2px"
+        style="opacity: 0.8; margin-top: 2px"
       />
     </v-img>
     <div class="d-flex justify-center">
@@ -37,7 +37,6 @@
           v-if="showTargetBtn"
           :color="targeted ? 'accent' : ''"
           :elevation="targeted ? 8 : 2"
-          style="margin-top: -16px;"
           small
           fab
           @click.stop.prevent="targeted ? $emit('untarget') : $emit('target')"

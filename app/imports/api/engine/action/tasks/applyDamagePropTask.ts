@@ -116,24 +116,27 @@ export default async function applyDamagePropTask(
     if (increment > currentValue && !targetProp.ignoreLowerLimit) increment = currentValue;
     // Can't decrease damage below zero
     if (-increment > currentDamage && !targetProp.ignoreUpperLimit) increment = -currentDamage;
-    damage = currentDamage + increment;
-    newValue = targetProp.total - damage;
-    // Write the results
-    result.mutations.push({
-      targetIds: [targetId],
-      updates: [{
-        propId: targetProp._id,
-        inc: { damage: increment, value: -increment },
-        type: targetProp.type,
-      }],
-      contents: [{
-        name: increment >= 0 ? 'Attribute damaged' : 'Attribute restored',
-        value: `${numberToSignedString(-increment)} ${getPropertyTitle(targetProp)}`,
-        inline: true,
-        ...task.silent && { silenced: true },
-      }]
-    });
-    if (targetId === action.creatureId) setScope(result, targetProp, newValue, damage);
+    // Only increment if the increment is non-zero
+    if (increment !== 0) {
+      damage = currentDamage + increment;
+      newValue = targetProp.total - damage;
+      // Write the results
+      result.mutations.push({
+        targetIds: [targetId],
+        updates: [{
+          propId: targetProp._id,
+          inc: { damage: increment, value: -increment },
+          type: targetProp.type,
+        }],
+        contents: [{
+          name: increment >= 0 ? 'Attribute damaged' : 'Attribute restored',
+          value: `${numberToSignedString(-increment)} ${getPropertyTitle(targetProp)}`,
+          inline: true,
+          ...task.silent && { silenced: true },
+        }]
+      });
+      if (targetId === action.creatureId) setScope(result, targetProp, newValue, damage);
+    }
   }
   await applyTriggers(action, targetProp, [targetId], 'damageTriggerIds.after', userInput);
   await applyTriggers(action, targetProp, [targetId], 'damageTriggerIds.afterChildren', userInput);

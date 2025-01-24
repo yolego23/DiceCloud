@@ -27,10 +27,12 @@ export default async function writeActionResults(action: EngineAction) {
     content: logContents,
     creatureId: action.creatureId,
     tabletopId: action.tabletopId,
+    actionId: action._id,
   });
 
-  // Write the bulk updates
-  const bulkWritePromise = bulkWrite(creaturePropUpdates, CreatureProperties);
+  // Write the bulk updates, force them to sequential mode means we immediately get the results
+  // in the subscription, rather than waiting for oplog tailing to catch up
+  const bulkWritePromise = bulkWrite(creaturePropUpdates, CreatureProperties, true);
 
   await Promise.all([engineActionPromise, logPromise, bulkWritePromise]);
 

@@ -224,6 +224,7 @@ export default {
         targetIds: this.targets,
         $store: this.$store,
         elementId: 'do-action-button',
+        callback: action => action?._id || this.model._id,
       }).catch((e) => {
         console.error(e);
         snackbar({ text: e.message || e.reason || e.toString() });

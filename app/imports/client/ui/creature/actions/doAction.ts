@@ -12,6 +12,7 @@ type BaseDoActionParams = {
   creatureId: string;
   $store: Store<any>;
   elementId: string;
+  callback?: (action: EngineAction) => void;
 }
 
 type DoTaskParams = BaseDoActionParams & {
@@ -32,7 +33,7 @@ type DoActionParams = BaseDoActionParams & {
  * the decisions the user makes, then applying the  action as a method call to the server with the
  * saved decisions, which will persist the action results.
  */
-export default async function doAction({ propId, creatureId, $store, elementId, task, targetIds }: DoActionParams | DoTaskParams): Promise<any | void> {
+export default async function doAction({ propId, creatureId, $store, elementId, task, targetIds, callback }: DoActionParams | DoTaskParams): Promise<any | void> {
   if (!task) {
     targetIds ??= [];
     if (!propId) throw new Meteor.Error('no-prop-id', 'Either propId or task must be provided');
@@ -58,8 +59,6 @@ export default async function doAction({ propId, creatureId, $store, elementId, 
   // Get the inserted and cleaned action instance
   const action = EngineActions.findOne(actionId);
 
-  console.log(action);
-
   if (!action) throw new Meteor.Error('not-found', 'The action could not be found');
 
   // Applying the action is deterministic, so we apply it, if it asks for user input, we escape and 
@@ -73,26 +72,21 @@ export default async function doAction({ propId, creatureId, $store, elementId, 
     return callActionMethod(finishedAction);
   } catch (e) {
     if (e !== 'input-requested') throw e;
-    return new Promise<void>((resolve, reject) => {
+    return new Promise<void>((resolve) => {
       $store.commit('pushDialogStack', {
         component: 'action-dialog',
         elementId,
         data: {
           actionId,
           task,
+          actionFinishedCallback: resolve,
         },
-        async callback(action: EngineAction) {
-          try {
-            if (action) await callActionMethod(action);
-            resolve();
-          }
-          catch (e) {
-            reject(e);
-          }
-          return elementId;
+        callback(action) {
+          resolve();
+          return callback?.(action);
         },
       });
-    })
+    });
   }
 }
 
