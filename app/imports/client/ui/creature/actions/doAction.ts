@@ -72,6 +72,9 @@ export default async function doAction({
     const finishedAction = await applyAction(
       action, getErrorOnInputRequestProvider(action._id), { simulate: true }
     );
+    if (replaceDialog) {
+      $store.dispatch('popDialogStack', finishedAction);
+    }
     return callActionMethod(finishedAction);
   } catch (e) {
     if (e !== 'input-requested') throw e;

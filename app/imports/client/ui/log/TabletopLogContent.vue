@@ -29,7 +29,7 @@
         </div>
       </div>
       <div
-        v-if="contentGroup.targetIds.length"
+        v-if="contentGroup.targetIds && contentGroup.targetIds.length"
         class="content-target-ids d-flex flex-column justify-center" 
       >
         <v-tooltip
@@ -101,7 +101,7 @@ export default {
           }
           currentContent = {
             targetIds: contentItem.targetIds,
-            targetCreatures: contentItem.targetIds.map(getCreature),
+            targetCreatures: contentItem.targetIds?.map(getCreature) ?? [],
             content: [contentItem],
           };
         } else {

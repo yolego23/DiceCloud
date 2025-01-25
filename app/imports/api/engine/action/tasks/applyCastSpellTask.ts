@@ -10,6 +10,7 @@ export default async function applySpellProperty(
   task: CastSpellTask, action: EngineAction, result: TaskResult, userInput: InputProvider
 ): Promise<void> {
   const prop = task.prop;
+  const targetIds = prop.target === 'self' ? [action.creatureId] : task.targetIds;
 
   if (!prop) {
     result.appendLog({
@@ -65,7 +66,7 @@ export default async function applySpellProperty(
   result.appendLog({
     name: message,
     silenced: prop.silent,
-  }, task.targetIds);
+  }, targetIds);
 
   // Add the slot level to the scope
   result.pushScope = {
@@ -76,6 +77,6 @@ export default async function applySpellProperty(
   // Run the rest of the spell as if it were an action
   return applyActionProperty({
     prop,
-    targetIds: task.targetIds,
+    targetIds: targetIds,
   }, action, result, userInput);
 }
