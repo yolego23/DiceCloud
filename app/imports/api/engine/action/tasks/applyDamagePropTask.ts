@@ -6,6 +6,7 @@ import { getEffectiveActionScope } from '/imports/api/engine/action/functions/ge
 import getPropertyTitle from '/imports/api/utility/getPropertyTitle';
 import { getSingleProperty } from '/imports/api/engine/loadCreatures';
 import numberToSignedString from '/imports/api/utility/numberToSignedString';
+import { lowerCase, upperFirst } from 'lodash';
 
 export default async function applyDamagePropTask(
   task: DamagePropTask, action: EngineAction, result: TaskResult, userInput
@@ -120,6 +121,7 @@ export default async function applyDamagePropTask(
     if (increment !== 0) {
       damage = currentDamage + increment;
       newValue = targetProp.total - damage;
+      const attributeTypeName = upperFirst(lowerCase(targetProp.attributeType));
       // Write the results
       result.mutations.push({
         targetIds: [targetId],
@@ -129,7 +131,7 @@ export default async function applyDamagePropTask(
           type: targetProp.type,
         }],
         contents: [{
-          name: increment >= 0 ? 'Attribute damaged' : 'Attribute restored',
+          name: increment >= 0 ? `${attributeTypeName} damaged` : `${attributeTypeName} restored`,
           value: `${numberToSignedString(-increment)} ${getPropertyTitle(targetProp)}`,
           inline: true,
           ...task.silent && { silenced: true },

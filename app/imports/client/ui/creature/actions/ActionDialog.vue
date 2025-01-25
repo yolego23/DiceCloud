@@ -238,8 +238,8 @@ export default {
 
 <style lang="css" scoped>
 .action-dialog {
-  max-height: min(100%, 800px);
-  max-width: min(100%, 1000px);
+  max-height: min(100vh, 800px);
+  max-width: min(100vh, 1000px);
   min-width: 300px;
 }
 

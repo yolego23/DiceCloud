@@ -115,7 +115,7 @@ describe('Apply Damage Properties', function () {
     }, {
       contents: [{
         inline: true,
-        name: 'Attribute damaged',
+        name: 'Health bar damaged',
         value: '−13 Hit Points',
       }],
       updates: [
@@ -145,7 +145,7 @@ describe('Apply Damage Properties', function () {
       contents: [
         {
           inline: true,
-          name: 'Attribute damaged',
+          name: 'Health bar damaged',
           value: '−14 Hit Points',
         }
       ],
@@ -181,7 +181,7 @@ describe('Apply Damage Properties', function () {
       contents: [
         {
           inline: true,
-          name: 'Attribute damaged',
+          name: 'Health bar damaged',
           value: '−14 Hit Points',
         }
       ],
@@ -197,7 +197,7 @@ describe('Apply Damage Properties', function () {
       contents: [
         {
           inline: true,
-          name: 'Attribute damaged',
+          name: 'Health bar damaged',
           value: '−14 Hit Points',
         }
       ],
@@ -228,7 +228,7 @@ describe('Apply Damage Properties', function () {
       contents: [
         {
           inline: true,
-          name: 'Attribute damaged',
+          name: 'Health bar damaged',
           value: '−22 Hit Points',
         }
       ],

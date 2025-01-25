@@ -3,7 +3,7 @@
     <div
       v-for="(contentGroup, index) in contentByTargetId"
       :key="index"
-      class="d-flex justify-space-between"
+      class="d-flex justify-space-between mb-2"
     >
       <div class="d-flex flex-wrap">
         <div

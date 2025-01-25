@@ -13,6 +13,7 @@ type BaseDoActionParams = {
   $store: Store<any>;
   elementId: string;
   callback?: (action: EngineAction) => void;
+  replaceDialog?: boolean;
 }
 
 type DoTaskParams = BaseDoActionParams & {
@@ -33,7 +34,9 @@ type DoActionParams = BaseDoActionParams & {
  * the decisions the user makes, then applying the  action as a method call to the server with the
  * saved decisions, which will persist the action results.
  */
-export default async function doAction({ propId, creatureId, $store, elementId, task, targetIds, callback }: DoActionParams | DoTaskParams): Promise<any | void> {
+export default async function doAction({
+  propId, creatureId, $store, elementId, task, targetIds, callback, replaceDialog
+}: DoActionParams | DoTaskParams): Promise<any | void> {
   if (!task) {
     targetIds ??= [];
     if (!propId) throw new Meteor.Error('no-prop-id', 'Either propId or task must be provided');
@@ -73,7 +76,7 @@ export default async function doAction({ propId, creatureId, $store, elementId, 
   } catch (e) {
     if (e !== 'input-requested') throw e;
     return new Promise<void>((resolve) => {
-      $store.commit('pushDialogStack', {
+      $store.commit(replaceDialog ? 'replaceDialog' : 'pushDialogStack', {
         component: 'action-dialog',
         elementId,
         data: {
@@ -81,7 +84,7 @@ export default async function doAction({ propId, creatureId, $store, elementId, 
           task,
           actionFinishedCallback: resolve,
         },
-        callback(action) {
+        callback(action: any) {
           resolve();
           return callback?.(action);
         },
@@ -107,7 +110,6 @@ function getErrorOnInputRequestProvider(actionId: string) {
     choose: throwInputRequestedError,
     advantage: throwInputRequestedError,
     check: throwInputRequestedError,
-    castSpell: throwInputRequestedError,
   }
   return errorOnInputRequest;
 }

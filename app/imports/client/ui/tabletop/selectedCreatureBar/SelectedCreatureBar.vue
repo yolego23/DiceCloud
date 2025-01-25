@@ -287,16 +287,11 @@ export default {
     openStandardAction(standardId) {
       this.menuOpen = false;
       if (standardId === 'cast-spell') {
-        doAction({
-          creatureId: this.creatureId,
-          $store: this.$store,
-          elementId: standardId,
-          task: {
-            subtaskFn: 'castSpell',
-            targetIds: [],
-            params: {
-              spellId: undefined,
-            },
+        this.$store.commit('pushDialogStack', {
+          component: 'cast-spell-with-slot-dialog',
+          elementId: 'cast-spell',
+          data: {
+            creatureId: this.creatureId,
           },
         });
       }

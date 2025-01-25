@@ -26,6 +26,7 @@
           v-bind="dialog.data"
           class="unsized-dialog dialog-component"
           :data-element-id="dialog.elementId"
+          :data-id="dialog._id"
           :data-index="index"
           :style="getDialogStyle(index)"
           :elevation="6"
@@ -37,6 +38,7 @@
           :ref="index"
           class="dialog"
           :data-element-id="dialog.elementId"
+          :data-id="dialog._id"
           :data-index="index"
           :style="getDialogStyle(index)"
           :elevation="6"
@@ -74,6 +76,7 @@
     data(){return {
       hiddenElements: [],
       shake: false,
+      leavingPromise: undefined,
     }},
     computed: {
       dialogs(){
@@ -135,15 +138,16 @@
         let stackLength = this.$store.state.dialogStack.dialogs.length - offset;
         if (stackLength){
           let topDialog = this.$refs[stackLength - 1][0];
-          // First look in the active window, then look elsewhere
-          return topDialog.$el.querySelector(`.v-window-item--active [data-id='${elementId}']`) ?? 
-            topDialog.$el.querySelector(`[data-id='${elementId}']`);
+          return topDialog.$el.querySelector(`.v-window-item--active [data-id='${elementId}']`)
+            ?? topDialog.$el.querySelector(`[data-id='${elementId}']`)
+            ?? document.querySelector(`.v-window-item--active [data-id='${elementId}']`)
+            ?? document.querySelector(`[data-id='${elementId}']`);
         } else {
-          return document.querySelector(`.v-window-item--active [data-id='${elementId}']`) ??
-            document.querySelector(`[data-id='${elementId}']`);
+          return document.querySelector(`.v-window-item--active [data-id='${elementId}']`)
+            ?? document.querySelector(`[data-id='${elementId}']`);
         }
       },
-      async enter(target, done){
+      async enter(target, done) {
         if (!target || !target.attributes['data-element-id']){
           done();
           return;
@@ -194,11 +198,9 @@
         source.style.transition = originalStyle.sourceTransition;
         setTimeout(done, 300 / animationSpeed);
       },
-      leave(target, done){
+      async leave(target, done) {
         // Give minimongo time to update documents we might need to animate to
-        setTimeout(() => this.doLeave(target, done));
-      },
-      async doLeave(target, done){
+        await new Promise(requestAnimationFrame);
         let elementId;
         let hiddenElement = this.hiddenElements.pop();
         let returnElementId = await this.$store.state.dialogStack.currentReturnElement;
@@ -211,11 +213,14 @@
           }
           elementId = target.attributes['data-element-id'].value;
         }
+        const replacing = this.$store.state.dialogStack.replacingDialog === target.attributes['data-id'].value;
         let source = this.getTopElementByDataId(elementId);
-        if (!source){
-          console.warn(`Can't find source for ${elementId}`);
+        if (!source || replacing){
           if (hiddenElement) hiddenElement.style.opacity = '';
-          else console.warn('No hidden element to reveal', hiddenElement);
+          // Just fade out gracefully
+          target.style.transition = 'all 0.3s ease';
+          target.style.opacity = '0';
+          await timeout(300 / animationSpeed);
           done();
           return;
         }

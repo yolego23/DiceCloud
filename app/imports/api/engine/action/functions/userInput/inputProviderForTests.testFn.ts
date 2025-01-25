@@ -1,4 +1,4 @@
-import InputProvider, { CastSpellParams } from '/imports/api/engine/action/functions/userInput/InputProvider';
+import InputProvider from '/imports/api/engine/action/functions/userInput/InputProvider';
 
 const inputProviderForTests: InputProvider = {
   async targetIds(target, currentTargetIds = []) {
@@ -41,9 +41,6 @@ const inputProviderForTests: InputProvider = {
   },
   async check(suggestedParams) {
     return suggestedParams;
-  },
-  async castSpell(suggestedParams) {
-    return suggestedParams as CastSpellParams;
   },
 }
 
