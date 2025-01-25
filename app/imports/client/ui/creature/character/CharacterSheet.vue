@@ -1,18 +1,7 @@
 <template>
   <div class="character-sheet fill-height">
     <v-fade-transition mode="out-in">
-      <div
-        v-if="!$subReady.singleCharacter"
-        key="character-loading"
-        class="fill-height layout justify-center align-center"
-      >
-        <v-progress-circular
-          indeterminate
-          color="primary"
-          size="64"
-        />
-      </div>
-      <div v-else-if="!creature">
+      <div v-if="!creature">
         <v-layout
           column
           align-center
@@ -214,11 +203,6 @@ export default {
     this.logObserver?.stop();
   },
   meteor: {
-    $subscribe: {
-      'singleCharacter'() {
-        return [this.creatureId];
-      },
-    },
     creature() {
       return Creatures.findOne(this.creatureId, {
         fields: { variables: 0 }

@@ -44,6 +44,15 @@ export default {
     VerticalHex
   },
   props: {
+    /**
+      advantage: 0 | 1 | -1;
+      skillVariableName?: string;
+      abilityVariableName?: string;
+      dc: number | null;
+      contest?: true;
+      targetSkillVariableName?: string;
+      targetAbilityVariableName?: string;
+    */
     value: {
       type: Object,
       required: true,
