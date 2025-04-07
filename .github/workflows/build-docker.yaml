@@ -12,4 +12,5 @@ jobs:
         run: docker build ./ -t yolego20/dicecloud:latest
       - name: push image to docker hub
         run: |
+          docker login -u yolego20 -p ${{ secrets.DOCKER_HUB_TOKEN}}
           docker push yolego20/dicecloud:latest
