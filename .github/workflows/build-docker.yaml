@@ -1,0 +1,15 @@
+name: Build and Publish image to Docker Hub
+on:
+  [workflow dispatch]
+
+jobs:
+  publish_images:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: build image
+        run: docker build ./ -t yolego20/dicecloud:latest
+      - name: push image to docker hub
+        run: |
+          docker push yolego20/dicecloud:latest
