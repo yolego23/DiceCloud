@@ -14,7 +14,7 @@ USER mt
 RUN curl https://install.meteor.com/ | sh
 
 WORKDIR /home/mt
-RUN git clone -b master https://github.com/ThaumRystra/DiceCloud dicecloud
+RUN git clone -b master https://github.com/yolego23/DiceCloud dicecloud
 WORKDIR /home/mt/dicecloud/app
 RUN npm install --production
 ENV PATH=$PATH:/home/mt/.meteor
